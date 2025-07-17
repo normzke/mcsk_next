@@ -1,0 +1,360 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(cuid())
+  name             String
+  email            String    @unique
+  emailVerifiedAt  DateTime?
+  password         String
+  rememberToken    String?
+  role             String    @default("user") // admin, user
+  playlists        WavePlaylist[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  date        DateTime
+  location    String?
+  image       String?
+  category    String?
+  venue       String?
+  startTime   DateTime?
+  endTime     DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model LicenseType {
+  id           String    @id @default(cuid())
+  title        String
+  description  String
+  category     String
+  features     Json      // Stored as array
+  requirements Json      // Stored as array
+  fees         Json      // Stored as array
+  icon         String?
+  duration     String
+  order        Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  licenses     License[]
+}
+
+model License {
+  id            String      @id @default(cuid())
+  licenseTypeId String
+  memberId      String
+  status        String      @default("pending") // pending, approved, rejected
+  licenseNumber String?
+  issuedAt      DateTime?
+  expiresAt     DateTime?
+  licenseType   LicenseType @relation(fields: [licenseTypeId], references: [id])
+  member        Member      @relation(fields: [memberId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime?
+}
+
+model Member {
+  id              String    @id @default(cuid())
+  name            String
+  email           String    @unique
+  phone           String?
+  address         String?
+  city            String?
+  country         String?
+  idNumber        String?
+  membershipType  String?
+  status          String    @default("pending")
+  profileImage    String?
+  documents       Json?     // Stored as array of document references
+  licenses        License[]
+  waves           Wave[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+}
+
+model MembershipBenefit {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  icon        String?
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Wave {
+  id            String    @id @default(cuid())
+  title         String
+  artist        String
+  album         String?
+  genre         String
+  releaseDate   DateTime
+  duration      Int       // in seconds
+  coverArt      String
+  audioFile     String
+  status        Boolean   @default(true)
+  isFeatured    Boolean   @default(false)
+  playCount     Int       @default(0)
+  memberId      String
+  member        Member    @relation(fields: [memberId], references: [id])
+  isrcCode      String    @unique
+  lyrics        String?
+  description   String?
+  copyrightInfo String
+  playlists     WavePlaylist[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+}
+
+model WavePlaylist {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  coverImage  String?
+  isPublic    Boolean   @default(true)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  waves       Wave[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Career {
+  id              String    @id @default(cuid())
+  title           String
+  department      String
+  experience      String
+  description     String
+  requirements    Json      // Stored as array
+  benefits        Json      // Stored as array
+  responsibilities Json     // Stored as array
+  location        String?
+  type            String?   // full-time, part-time, contract
+  deadline        DateTime?
+  isActive        Boolean   @default(true)
+  applications    CareerApplication[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+}
+
+model CareerApplication {
+  id          String    @id @default(cuid())
+  careerId    String
+  career      Career    @relation(fields: [careerId], references: [id])
+  name        String
+  email       String
+  phone       String?
+  coverLetter String?
+  resume      String    // File path
+  status      String    @default("pending")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model BoardMember {
+  id          String    @id @default(cuid())
+  name        String
+  position    String
+  image       String?
+  bio         String?
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model ManagementMember {
+  id          String    @id @default(cuid())
+  name        String
+  position    String
+  image       String?
+  bio         String?
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model News {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  image       String?
+  slug        String    @unique
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Announcement {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  image       String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Page {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  slug        String    @unique
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Service {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  icon        String?
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Partner {
+  id          String    @id @default(cuid())
+  name        String
+  logo        String?
+  website     String?
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Gallery {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  image       String
+  type        String    @default("image") // image, video
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Download {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  file        String
+  downloads   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Faq {
+  id          String    @id @default(cuid())
+  question    String
+  answer      String
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model ContactMessage {
+  id          String    @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  subject     String?
+  message     String
+  status      String    @default("unread")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Setting {
+  id          String    @id @default(cuid())
+  key         String    @unique
+  value       String
+  type        String    @default("text")
+  group       String    @default("general")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model SeoMeta {
+  id          String    @id @default(cuid())
+  path        String    @unique
+  title       String?
+  description String?
+  keywords    String?
+  ogTitle     String?
+  ogDescription String?
+  ogImage     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model NewsletterSubscriber {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model HeroSlide {
+  id          String    @id @default(cuid())
+  title       String
+  subtitle    String?
+  description String?
+  image       String
+  buttonText  String?
+  buttonLink  String?
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+} 
