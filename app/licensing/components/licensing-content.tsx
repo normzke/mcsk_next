@@ -138,9 +138,9 @@ export default function LicensingContent({ initialData }: { initialData: Licensi
   return (
     <main className="min-h-screen">
       <PageHeader
-        title={initialData.hero.title}
-        description={initialData.hero.description}
-        image={initialData.hero.image}
+        title={initialData?.hero?.title || "Music Licensing"}
+        description={initialData?.hero?.description || "Obtain the right license for your business or event to legally use music."}
+        image={initialData?.hero?.image || "/images/licensing/hero.jpg"}
       />
 
       {/* Benefits Section */}
@@ -148,7 +148,7 @@ export default function LicensingContent({ initialData }: { initialData: Licensi
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Why Get Licensed?</h2>
           <div className="grid md:grid-cols-4 gap-8">
-            {initialData.benefits.map((benefit, index) => {
+            {initialData?.benefits && initialData.benefits.length > 0 ? initialData.benefits.map((benefit, index) => {
               const IconComponent = getIconComponent(benefit.icon)
               return (
                 <Card key={index} className="p-6">
@@ -158,8 +158,12 @@ export default function LicensingContent({ initialData }: { initialData: Licensi
                     <p className="text-slate-600">{benefit.description}</p>
                   </div>
                 </Card>
-              )
-            })}
+              );
+            }) : (
+              <div className="col-span-4 text-center">
+                <p className="text-slate-600">Licensing benefits information will be available soon.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -168,18 +172,19 @@ export default function LicensingContent({ initialData }: { initialData: Licensi
       <section className="py-16 bg-slate-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">License Types</h2>
-          <Tabs defaultValue={initialData.categories[0].id} className="w-full">
-            <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 mb-8">
+          {initialData?.categories && initialData.categories.length > 0 ? (
+            <Tabs defaultValue={initialData.categories[0].id} className="w-full">
+              <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 mb-8">
+                {initialData.categories.map((category) => (
+                  <TabsTrigger key={category.id} value={category.id}>
+                    {category.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
               {initialData.categories.map((category) => (
-                <TabsTrigger key={category.id} value={category.id}>
-                  {category.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            {initialData.categories.map((category) => (
-              <TabsContent key={category.id} value={category.id}>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {licensesByCategory[category.id]?.map((license) => (
+                <TabsContent key={category.id} value={category.id}>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {licensesByCategory[category.id] && licensesByCategory[category.id].map((license) => (
                     <Card key={license.id} className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="flex-1">
@@ -259,6 +264,11 @@ export default function LicensingContent({ initialData }: { initialData: Licensi
               </TabsContent>
             ))}
           </Tabs>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-slate-600">License categories will be available soon.</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -266,11 +276,11 @@ export default function LicensingContent({ initialData }: { initialData: Licensi
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4">{initialData.process.title}</h2>
-            <p className="text-slate-600 mb-12">{initialData.process.description}</p>
+            <h2 className="text-3xl font-bold mb-4">{initialData?.process?.title || "Licensing Process"}</h2>
+            <p className="text-slate-600 mb-12">{initialData?.process?.description || "Our streamlined process for obtaining a music license"}</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
-            {initialData.process.steps.map((step, index) => (
+            {initialData?.process?.steps && initialData.process.steps.length > 0 ? initialData.process.steps.map((step, index) => (
               <div key={index} className="relative">
                 <Card className="p-6 h-full">
                   <div className="flex flex-col items-center text-center">
@@ -287,7 +297,11 @@ export default function LicensingContent({ initialData }: { initialData: Licensi
                   </div>
                 )}
               </div>
-            ))}
+            )) : (
+              <div className="col-span-3 text-center">
+                <p className="text-slate-600">Process steps will be available soon.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -299,8 +313,9 @@ export default function LicensingContent({ initialData }: { initialData: Licensi
             <h2 className="text-3xl font-bold text-center mb-12">
               Frequently Asked Questions
             </h2>
-            <Accordion type="single" collapsible className="w-full">
-              {initialData.faqs.map((faq, index) => (
+            {initialData?.faqs && initialData.faqs.length > 0 ? (
+              <Accordion type="single" collapsible className="w-full">
+                {initialData.faqs.map((faq, index) => (
                 <AccordionItem key={index} value={`item-${index}`}>
                   <AccordionTrigger className="text-left">
                     {faq.question}
@@ -311,6 +326,11 @@ export default function LicensingContent({ initialData }: { initialData: Licensi
                 </AccordionItem>
               ))}
             </Accordion>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-slate-600">FAQs will be available soon.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

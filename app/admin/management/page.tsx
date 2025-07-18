@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   description: "Manage MCSK board members and management staff",
 }
 
+// Add dynamic rendering to prevent static generation errors
+export const dynamic = 'force-dynamic';
+
 async function getManagementStats() {
   try {
     const total = await prisma.managementMember.count({

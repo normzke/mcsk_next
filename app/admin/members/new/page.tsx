@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   description: "Add a new MCSK member",
 }
 
+// Add dynamic rendering to prevent static generation errors
+export const dynamic = 'force-dynamic'
+
 export default async function NewMemberPage() {
   // Fetch membership categories and map to ensure they match the MembershipCategory interface
   const categoriesData = await prisma.membershipCategory.findMany()

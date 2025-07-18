@@ -12,10 +12,16 @@ export const metadata: Metadata = {
   description: 'Manage website settings',
 }
 
+// Add dynamic rendering to prevent static generation errors
+export const dynamic = 'force-dynamic';
+
 export default async function SettingsPage() {
   let settings: Setting[] = []
   try {
     const dbSettings = await prisma.setting.findMany({
+      where: {
+        // Remove the deletedAt filter that's causing issues
+      },
       orderBy: {
         key: 'asc',
       },

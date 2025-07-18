@@ -5,6 +5,9 @@ import { columns } from "./columns"
 import { LicenseTypesDataTable } from "./data-table"
 import Link from "next/link"
 
+// Force dynamic rendering to prevent build-time fetch errors
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "License Types - MCSK Admin",
   description: "Manage license types for music usage",

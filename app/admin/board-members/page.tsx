@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   description: "Manage MCSK board members",
 }
 
+// Add dynamic rendering to prevent static generation errors
+export const dynamic = 'force-dynamic';
+
 async function getBoardMemberStats() {
   // TODO: Implement API call
   return {

@@ -2,6 +2,8 @@ import { Metadata } from 'next'
 import { LicenseForm } from '../_components/license-form'
 import prisma from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'New License | MCSK Admin',
   description: 'Create a new MCSK license',
