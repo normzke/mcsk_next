@@ -1,0 +1,24 @@
+export type ManagementMember = {
+  id: string;
+  name: string;
+  position: string;
+  image?: string | null;
+  bio?: string | null;
+  order: number;
+  isActive: boolean;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  deletedAt?: string | Date | null;
+  department: string;
+  email: string;
+  endDate?: string | Date | null;
+  firstName: string;
+  lastName: string;
+  phone?: string | null;
+  profileImage?: string | null;
+  role: string;
+  startDate?: string | Date | null;
+  status: "active" | "inactive" | "on_leave";
+  linkedinUrl?: string | null;
+  twitterUrl?: string | null;
+};

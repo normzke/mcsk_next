@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a1464"/>
+      <stop offset="100%" stop-color="#4a3b9c"/>
+    </linearGradient>
+    <filter id="noise" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.05 0"/>
+      <feComposite operator="in" in2="SourceGraphic" result="monoNoise"/>
+      <feBlend in="SourceGraphic" in2="monoNoise" mode="overlay" result="blend"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg-gradient)" filter="url(#noise)"/>
+  
+  <!-- Concert crowd silhouette -->
+  <path d="M0,1080 L1920,1080 L1920,800 C1800,780 1750,820 1700,780 C1650,750 1600,770 1550,750 C1500,730 1450,750 1400,730 C1350,710 1300,730 1250,710 C1200,690 1150,710 1100,690 C1050,670 1000,690 950,670 C900,650 850,670 800,650 C750,630 700,650 650,630 C600,610 550,630 500,610 C450,590 400,610 350,590 C300,570 250,590 200,570 C150,550 100,570 50,550 C0,530 0,550 0,550 Z" fill="rgba(0,0,0,0.8)"/>
+  
+  <!-- Stage lights -->
+  <g opacity="0.7">
+    <circle cx="300" cy="200" r="100" fill="rgba(255,0,0,0.3)"/>
+    <circle cx="600" cy="150" r="80" fill="rgba(0,0,255,0.3)"/>
+    <circle cx="900" cy="180" r="120" fill="rgba(255,255,0,0.3)"/>
+    <circle cx="1200" cy="150" r="90" fill="rgba(0,255,0,0.3)"/>
+    <circle cx="1500" cy="200" r="110" fill="rgba(255,0,255,0.3)"/>
+  </g>
+  
+  <!-- Stage -->
+  <rect x="0" y="700" width="1920" height="20" fill="rgba(255,255,255,0.2)"/>
+  
+  <!-- Microphone stand -->
+  <g transform="translate(960, 600)">
+    <rect x="-5" y="0" width="10" height="200" fill="rgba(100,100,100,0.8)"/>
+    <circle cx="0" cy="0" r="20" fill="rgba(150,150,150,0.8)"/>
+  </g>
+  
+  <!-- Concert title -->
+  <g transform="translate(960, 300)" text-anchor="middle">
+    <text font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="white" opacity="0.8">LIVE MUSIC</text>
+    <text font-family="Arial, sans-serif" font-size="30" fill="white" opacity="0.6" y="60">Protecting Artists' Rights</text>
+  </g>
+</svg>

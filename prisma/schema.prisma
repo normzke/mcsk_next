@@ -1,0 +1,439 @@
+generator client {
+  provider        = "prisma-client-js"
+  output         = "../node_modules/.prisma/client"
+  previewFeatures = ["driverAdapters", "metrics", "multiSchema", "nativeDistinct", "queryCompiler", "relationJoins", "shardKeys", "strictUndefinedChecks", "views"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Announcement {
+  id          String    @id @default(uuid())
+  title       String
+  content     String
+  image       String?
+  isActive    Boolean   @default(true)
+  attachment  String?
+  buttonText  String?
+  buttonUrl   String?
+  expireAt    DateTime?
+  isFeatured  Boolean   @default(false)
+  isPublished Boolean   @default(true)
+  publishAt   DateTime  @default(now())
+  type        String    @default("info")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model ManagementMember {
+  id           String    @id @default(uuid())
+  name         String
+  position     String
+  image        String?
+  bio          String?
+  order        Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  department   String
+  email        String    @unique
+  endDate      DateTime?
+  firstName    String
+  lastName     String
+  phone        String?
+  profileImage String?
+  role         String
+  startDate    DateTime?
+  status       String    @default("active")
+  linkedinUrl  String?
+  twitterUrl   String?
+
+  @@map("management_members")  // Map to existing table name
+}
+
+model Career {
+  id                String              @id @default(uuid())
+  title             String
+  department        String
+  experience        String
+  description       String
+  requirements      Json
+  benefits          Json
+  responsibilities  Json
+  location          String?
+  type              String?
+  deadline          DateTime?
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  deletedAt         DateTime?
+  careerApplications CareerApplication[]
+}
+
+model Download {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  file        String
+  order       Int       @default(0)
+  downloads   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Event {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  date        DateTime
+  location    String?
+  image       String?
+  category    String?
+  venue       String?
+  startTime   DateTime?
+  endTime     DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model Faq {
+  id        String    @id @default(uuid())
+  question  String
+  answer    String
+  order     Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Gallery {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  image       String
+  type        String    @default("image")
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model License {
+  @@map("license")
+  id            String      @id @default(uuid())
+  licenseTypeId String
+  memberId      String
+  status        String      @default("pending")
+  licenseNumber String?
+  issuedAt      DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime?
+  licenseType   LicenseType @relation(fields: [licenseTypeId], references: [id], map: "License_licenseTypeId_fkey")
+  member        Member      @relation(fields: [memberId], references: [id], map: "License_memberId_fkey")
+
+  @@index([licenseTypeId], map: "License_licenseTypeId_fkey")
+  @@index([memberId], map: "License_memberId_fkey")
+}
+
+model Member {
+  @@map("member")
+  id                   String              @id @default(uuid())
+  name                 String
+  email                String              @unique(map: "Member_email_key")
+  phone                String?
+  address              String?
+  city                 String?
+  country              String?
+  idNumber             String?
+  membershipType       String?
+  status               String              @default("pending")
+  profileImage         String?
+  documents            Json?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  deletedAt            DateTime?
+  bankAccount          String?
+  bankName             String?
+  bio                  String?
+  dateOfBirth          DateTime?
+  firstName            String?
+  joinDate             DateTime?
+  lastName             String?
+  membershipCategoryId String?
+  mpesaNumber          String?
+  licenses             License[]
+  membershipCategory   MembershipCategory? @relation("MembershipCategory_members", fields: [membershipCategoryId], references: [id])
+  waves                Wave[]
+  
+  @@index([membershipCategoryId], map: "Member_membershipCategoryId_fkey")
+}
+
+model News {
+  id        String    @id @default(uuid())
+  title     String
+  content   String
+  image     String?
+  slug      String    @unique(map: "News_slug_key")
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Page {
+  id        String    @id @default(uuid())
+  title     String
+  content   String
+  slug      String    @unique(map: "Page_slug_key")
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Partner {
+  id        String    @id @default(uuid())
+  name      String
+  logo      String?
+  website   String?
+  order     Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model Setting {
+  @@map("setting")
+  id        String   @id @default(uuid())
+  key       String   @unique(map: "Setting_key_key")
+  value     String   @db.Text
+  type      String   @default("text")
+  group     String   @default("general")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model User {
+  id              String         @id @default(uuid())
+  name            String
+  email           String         @unique(map: "User_email_key")
+  emailVerifiedAt DateTime?
+  password        String
+  rememberToken   String?
+  role            String         @default("user")
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
+  wavePlaylists    WavePlaylist[]
+}
+
+model Wave {
+  @@map("wave")
+  id            String         @id @default(uuid())
+  title         String
+  artist        String
+  album         String?
+  genre         String
+  releaseDate   DateTime
+  duration      Int
+  coverArt      String
+  audioFile     String
+  status        Boolean        @default(true)
+  isFeatured    Boolean        @default(false)
+  playCount     Int            @default(0)
+  memberId      String
+  isrcCode      String         @unique(map: "Wave_isrcCode_key")
+  lyrics        String?
+  description   String?
+  copyrightInfo String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+  member        Member         @relation(fields: [memberId], references: [id], map: "Wave_memberId_fkey")
+  wavePlaylists  WavePlaylist[] @relation("wavetowaveplaylist")
+
+  @@index([memberId], map: "Wave_memberId_fkey")
+}
+
+model WaveTag {
+  @@map("wavetag")
+  id           String    @id @default(uuid())
+  name         String
+  position     String
+  image        String?
+  bio          String?
+  order        Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+}
+
+model WaveListener {
+  @@map("wavelistener")
+  id        String    @id @default(uuid())
+  name      String
+  logo      String?
+  website   String?
+  order     Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model CareerApplication {
+  @@map("careerapplication")
+  id          String    @id @default(uuid())
+  careerId    String
+  name        String
+  email       String
+  phone       String?
+  coverLetter String?
+  resume      String
+  status      String    @default("pending")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  career      Career    @relation(fields: [careerId], references: [id], map: "CareerApplication_careerId_fkey")
+
+  @@index([careerId], map: "CareerApplication_careerId_fkey")
+}
+
+model WavePlaylist {
+  @@map("waveplaylist")
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  coverImage  String?
+  isPublic    Boolean   @default(true)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], map: "waveplaylist_userId_fkey")
+  waves       Wave[]    @relation("wavetowaveplaylist")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([userId], map: "waveplaylist_userId_fkey")
+}
+
+model ContactMessage {
+  @@map("contactmessage")
+  id        String    @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  status    String    @default("unread")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model HeroSlide {
+  @@map("heroslide")
+  id          String    @id @default(uuid())
+  title       String
+  subtitle    String?
+  description String?
+  image       String
+  buttonText  String?
+  buttonLink  String?
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model LicenseType {
+  id           String    @id @default(uuid())
+  title        String
+  description  String
+  category     String
+  features     Json
+  requirements Json
+  fees         Json
+  icon         String?
+  duration     String
+  order        Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  licenses     License[]
+}
+
+model MembershipBenefit {
+  @@map("membershipbenefit")
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  icon        String?
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+model MembershipCategory {
+  id        String   @id @default(uuid())
+  title     String
+  features  Json
+  order     Int?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  members   Member[] @relation("MembershipCategory_members")
+}
+
+model NewsletterSubscriber {
+  @@map("newslettersubscriber")
+  id        String   @id
+  email     String   @unique(map: "NewsletterSubscriber_email_key")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
+
+model SeoMeta {
+  id            String   @id
+  path          String   @unique(map: "SeoMeta_path_key")
+  title         String?
+  description   String?
+  keywords      String?
+  ogTitle       String?
+  ogDescription String?
+  ogImage       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+}
+
+model Service {
+  id          String    @id
+  title       String
+  description String
+  icon        String?
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  deletedAt   DateTime?
+}

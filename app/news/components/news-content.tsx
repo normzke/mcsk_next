@@ -1,0 +1,333 @@
+'use client'
+
+import { useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { format } from 'date-fns'
+import PageHeader from '@/components/ui/page-header'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Calendar, Tag, Clock } from 'lucide-react'
+
+type NewsArticle = {
+  id: string
+  title: string
+  slug: string
+  excerpt: string
+  content: string
+  image: string
+  publishedAt: string
+  category: string
+  tags: string[] | Array<{id: string, name: string, count?: number}>
+  author: {
+    name: string
+    avatar: string
+  }
+}
+
+type NewsData = {
+  hero: {
+    title: string
+    description: string
+    image: string
+  }
+  categories: string[]
+  featuredArticles: NewsArticle[]
+  latestArticles: NewsArticle[]
+}
+
+export default function NewsContent({ initialData }: { initialData: NewsData | null }) {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [selectedTag, setSelectedTag] = useState<string | null>(null)
+
+  if (!initialData) {
+    return (
+      <main className="min-h-screen">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-slate-900 mb-4">
+              Error Loading News
+            </h1>
+            <p className="text-slate-600">
+              Sorry, we couldn't load the news content. Please try again later.
+            </p>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // Add fallback data for when arrays are missing
+  const fallbackData = {
+    featuredArticles: [],
+    latestArticles: []
+  }
+
+  // Get all unique tags from articles and ensure they're strings, not objects
+  const allTags = Array.from(new Set([
+    ...(initialData.featuredArticles && Array.isArray(initialData.featuredArticles) 
+      ? initialData.featuredArticles.flatMap(article => {
+          // Ensure tags is an array of strings, not objects
+          if (!article.tags) return [];
+          return article.tags.map(tag => {
+            if (typeof tag === 'object' && tag !== null) {
+              // Handle tag objects with a name property
+              return (tag as any).name || String(tag);
+            }
+            return tag;
+          });
+        })
+      : []),
+    ...(initialData.latestArticles && Array.isArray(initialData.latestArticles) 
+      ? initialData.latestArticles.flatMap(article => {
+          // Ensure tags is an array of strings, not objects
+          if (!article.tags) return [];
+          return article.tags.map(tag => {
+            if (typeof tag === 'object' && tag !== null) {
+              // Handle tag objects with a name property
+              return (tag as any).name || String(tag);
+            }
+            return tag;
+          });
+        })
+      : [])
+  ]))
+
+  // Filter articles based on search, category, and tag
+  const filterArticles = (articles: NewsArticle[] | undefined) => {
+    if (!articles || !Array.isArray(articles)) return []
+    
+    return articles.filter(article => {
+      const matchesSearch = searchQuery === '' || 
+        article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesCategory = selectedCategory === null || article.category === selectedCategory
+      
+      // Handle tag matching for both string tags and object tags
+      const matchesTag = selectedTag === null || 
+        (article.tags && Array.isArray(article.tags) && article.tags.some(tag => {
+          if (typeof tag === 'object' && tag !== null) {
+            return (tag as any).name === selectedTag;
+          }
+          return tag === selectedTag;
+        }))
+      
+      return matchesSearch && matchesCategory && matchesTag
+    })
+  }
+
+  const filteredLatestArticles = filterArticles(initialData.latestArticles)
+
+  // Add fallback hero data
+  const fallbackHero = {
+    title: "MCSK News & Updates",
+    description: "Stay informed with the latest news and updates from the Music Copyright Society of Kenya",
+    image: "/images/hero/news-hero.jpg"
+  }
+
+  return (
+    <main className="min-h-screen">
+      <PageHeader
+        title={initialData?.hero?.title || fallbackHero.title}
+        description={initialData?.hero?.description || fallbackHero.description}
+        image={initialData?.hero?.image || fallbackHero.image}
+      />
+
+      {/* Featured Articles */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold mb-8">Featured News</h2>
+          <div className="grid lg:grid-cols-2 gap-8">
+            {initialData?.featuredArticles && Array.isArray(initialData.featuredArticles) && initialData.featuredArticles.length > 0 ? initialData.featuredArticles.map((article) => (
+              <Card key={article.id} className="overflow-hidden">
+                <div className="relative h-64">
+                  <Image
+                    src={article.image}
+                    alt={article.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-6">
+                  <Badge className="mb-4">{article.category}</Badge>
+                  <h3 className="text-2xl font-bold mb-3">
+                    <Link
+                      href={`/news/${article.slug}`}
+                      className="hover:text-blue-600 transition-colors"
+                    >
+                      {article.title}
+                    </Link>
+                  </h3>
+                  <p className="text-slate-600 mb-4">{article.excerpt}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="relative h-10 w-10 rounded-full overflow-hidden">
+                        <Image
+                          src={article.author.avatar}
+                          alt={article.author.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium">{article.author.name}</p>
+                        <div className="flex items-center text-sm text-slate-500">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          {format(new Date(article.publishedAt), 'MMMM d, yyyy')}
+                        </div>
+                      </div>
+                    </div>
+                    <Link href={`/news/${article.slug}`}>
+                      <Button>Read More</Button>
+                    </Link>
+                  </div>
+                </div>
+              </Card>
+            )) : (
+              <div className="col-span-2 text-center py-10">
+                <p className="text-slate-600">No featured articles available at this time.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* News Filters */}
+      <section className="py-8 bg-slate-50">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <Input
+              type="search"
+              placeholder="Search news..."
+              className="max-w-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedCategory === null ? "default" : "outline"}
+                onClick={() => setSelectedCategory(null)}
+              >
+                All Categories
+              </Button>
+              {initialData?.categories && Array.isArray(initialData.categories) && initialData.categories.length > 0 ? initialData.categories.map((category, index) => (
+                <Button
+                  key={index}
+                  variant={selectedCategory === category ? "default" : "outline"}
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {typeof category === 'object' && category !== null ? (category as any).name : category}
+                </Button>
+              )) : null}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Button
+              variant={selectedTag === null ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedTag(null)}
+            >
+              All Tags
+            </Button>
+            {allTags && allTags.length > 0 ? allTags.map((tag, index) => (
+              <Button
+                key={index}
+                variant={selectedTag === tag ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedTag(tag)}
+              >
+                {tag}
+              </Button>
+            )) : null}
+          </div>
+        </div>
+      </section>
+
+      {/* Latest Articles */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold mb-8">Latest News</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredLatestArticles && filteredLatestArticles.length > 0 ? filteredLatestArticles.map((article) => (
+              <Card key={article.id} className="flex flex-col">
+                <div className="relative h-48">
+                  <Image
+                    src={article.image}
+                    alt={article.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-6 flex-grow">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Badge>{article.category}</Badge>
+                    <div className="flex items-center text-sm text-slate-500">
+                      <Clock className="h-4 w-4 mr-1" />
+                      {format(new Date(article.publishedAt), 'MMM d, yyyy')}
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">
+                    <Link
+                      href={`/news/${article.slug}`}
+                      className="hover:text-blue-600 transition-colors"
+                    >
+                      {article.title}
+                    </Link>
+                  </h3>
+                  <p className="text-slate-600 mb-4">{article.excerpt}</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {article.tags && Array.isArray(article.tags) ? article.tags.map((tag, index) => {
+                      // Handle both string tags and object tags
+                      const tagName = typeof tag === 'object' && tag !== null ? (tag as any).name : tag;
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-center text-sm text-slate-500"
+                        >
+                          <Tag className="h-3 w-3 mr-1" />
+                          {tagName}
+                        </div>
+                      );
+                    }) : null}
+                  </div>
+                </div>
+                <div className="p-6 pt-0">
+                  <Link href={`/news/${article.slug}`}>
+                    <Button className="w-full">Read More</Button>
+                  </Link>
+                </div>
+              </Card>
+            )) : (
+              <div className="col-span-3 text-center py-10">
+                <p className="text-slate-600">No articles found matching your criteria.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter Signup */}
+      <section className="py-16 bg-blue-600 text-white">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
+          <p className="text-xl mb-8 text-blue-100 max-w-2xl mx-auto">
+            Subscribe to our newsletter to receive the latest news and updates from MCSK directly in your inbox.
+          </p>
+          <div className="flex gap-4 max-w-md mx-auto">
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              className="bg-white text-slate-900"
+            />
+            <Button variant="secondary" size="lg">
+              Subscribe
+            </Button>
+          </div>
+        </div>
+      </section>
+    </main>
+  )
+}
