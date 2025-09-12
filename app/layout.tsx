@@ -1,10 +1,62 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Providers } from './providers'
-import NavHeader from '@/components/ui/nav-header'
-import Footer from '@/components/ui/footer'
-import { SiteStructuredData } from '@/components/seo/StructuredDataScript'
-import { getLogoUrl } from '@/lib/site-settings'
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import { getLogoUrl } from '@/lib/site-settings';
+import { ViewportPrefetcher } from '@/components/ui/viewport-prefetcher';
+import type { NavHeaderProps } from '@/components/ui/nav-header.types';
+
+// Client-side only components
+const RouteTransition = dynamic(
+  () => import('@/components/ui/route-transition').then(mod => ({
+    default: (props: any) => <mod.RouteTransition {...props} />
+  })),
+  { ssr: false, loading: () => null }
+);
+
+const LoadingFallback = dynamic(
+  () => import('@/app/loading'),
+  { ssr: false, loading: () => null }
+);
+
+// Dynamically import NavHeader component
+const NavHeader = dynamic<NavHeaderProps>(
+  () => import('@/components/ui/nav-header').then(mod => ({
+    default: (props: NavHeaderProps) => <mod.NavHeader {...props} />
+  })),
+  { ssr: true, loading: () => null }
+);
+
+const Footer = dynamic(
+  () => import('@/components/ui/footer'), 
+  { ssr: true, loading: () => null }
+);
+
+const SiteStructuredData = dynamic(
+  () => import('@/components/seo/StructuredDataScript').then(mod => ({
+    default: () => <mod.SiteStructuredData />
+  })),
+  { ssr: true, loading: () => null }
+);
+
+// Preload critical resources
+const preloadResources = () => (
+  <>
+    <link
+      rel="preload"
+      href="/_next/static/css/app/layout.css"
+      as="style"
+      crossOrigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/_next/static/chunks/main-app.js"
+      as="script"
+      crossOrigin="anonymous"
+    />
+  </>
+);
 
 export const metadata: Metadata = {
   title: 'MCSK - Music Copyright Society of Kenya | Official Website',
@@ -74,8 +126,9 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   // Fetch logo URLs
-  const headerLogo = await getLogoUrl('header')
-  const footerLogo = await getLogoUrl('footer')
+  const headerLogo = await getLogoUrl('header');
+  const logoUrl = await getLogoUrl('main');
+  const footerLogo = await getLogoUrl('footer');
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -85,13 +138,23 @@ export default async function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="theme-color" content="#ffffff" />
+        <SiteStructuredData />
+        <Suspense fallback={null}>
+          {preloadResources()}
+        </Suspense>
       </head>
-      <body className="min-h-screen bg-background font-sans antialiased flex flex-col">
+      <body className="min-h-screen flex flex-col bg-white">
         <Providers>
-          <SiteStructuredData />
-          <NavHeader headerLogo={headerLogo} />
-          <main className="flex-grow">{children}</main>
-          <Footer footerLogo={footerLogo} />
+          <NavHeader logo={logoUrl} />
+          <main className="flex-grow relative">
+            <Suspense fallback={<LoadingFallback />}>
+              <RouteTransition>
+                <>{children}</>
+              </RouteTransition>
+            </Suspense>
+          </main>
+          <Footer />
+          <ViewportPrefetcher />
         </Providers>
       </body>
     </html>

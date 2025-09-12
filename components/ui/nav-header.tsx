@@ -1,15 +1,16 @@
-'use client'
+'use client';
 
-import * as React from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { usePathname } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, ChevronDown, Mail, Phone, MapPin } from "lucide-react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X, ChevronDown, Mail, Phone, MapPin } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-import { Button } from "./button"
-import { Sheet, SheetContent, SheetTrigger } from "./sheet"
+import { Button } from "./button";
+import { Sheet, SheetContent, SheetTrigger } from "./sheet";
+import type { NavHeaderProps } from './nav-header.types';
 
 // Define types for navigation items
 type NavChild = {
@@ -175,11 +176,9 @@ function MobileDropdownMenu({ item, setIsOpen }: MobileDropdownMenuProps) {
   );
 }
 
-interface NavHeaderProps {
-  headerLogo?: string;
-}
-
-export default function NavHeader({ headerLogo = "/images/MCSK Logo.png" }: NavHeaderProps) {
+export function NavHeader({ logo = "/images/MCSK Logo.png" }: NavHeaderProps) {
+  // Ensure logo has a default value if empty
+  const logoUrl = logo || "/images/MCSK Logo.png";
   const pathname = usePathname();
   const [isOpen, setIsOpen] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
@@ -238,10 +237,14 @@ export default function NavHeader({ headerLogo = "/images/MCSK Logo.png" }: NavH
                   ? "bg-gradient-to-r from-blue-200 to-indigo-200 group-hover:from-blue-300 group-hover:to-indigo-300" 
                   : "bg-gradient-to-r from-blue-100 to-indigo-100 group-hover:from-blue-200 group-hover:to-indigo-200"
               )}>
-                <img src={headerLogo} alt="MCSK Logo" className={cn(
-                  "w-auto relative z-10 transition-all duration-300",
-                  isScrolled ? "h-7" : "h-8"
-                )} />
+                <Image
+                  src={logoUrl}
+                  alt="MCSK Logo"
+                  width={120}
+                  height={60}
+                  className="h-12 w-auto object-contain"
+                  priority
+                />
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
               <span className={cn(
@@ -313,7 +316,14 @@ export default function NavHeader({ headerLogo = "/images/MCSK Logo.png" }: NavH
                 <SheetContent side="right" className="border-l border-blue-100">
                   <div className="flex items-center mb-8">
                     <div className="relative overflow-hidden rounded-full p-1 bg-gradient-to-r from-blue-100 to-indigo-100 mr-2">
-                      <img src={headerLogo} alt="MCSK Logo" className="h-8 w-auto" />
+                      <Image
+                        src={logo}
+                        alt="MCSK Logo"
+                        width={120}
+                        height={60}
+                        className="h-12 w-auto object-contain"
+                        priority
+                      />
                     </div>
                     <h3 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#1a1464] to-[#3a2b8c]">MCSK</h3>
                   </div>

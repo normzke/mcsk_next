@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+import { getActiveAnnouncements, getActiveNews, getActivePartners } from '@/lib/db-utils';
+
 export async function GET() {
   try {
-    // Fetch data from database
+    // Fetch data from database with caching
     const [heroSlides, announcements, latestNews, partners] = await Promise.all([
       prisma.heroSlide.findMany({
         where: {
@@ -11,40 +13,13 @@ export async function GET() {
           isActive: true,
         },
         orderBy: {
-          order: 'asc',
+          order: 'asc'
         },
-        take: 5,
+        take: 5
       }),
-      prisma.announcement.findMany({
-        where: {
-          deletedAt: null,
-          isPublished: true,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: 3,
-      }),
-      prisma.news.findMany({
-        where: {
-          deletedAt: null,
-          isActive: true,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: 4,
-      }),
-      prisma.partner.findMany({
-        where: {
-          deletedAt: null,
-          isActive: true,
-        },
-        orderBy: {
-          order: 'asc',
-        },
-        take: 6,
-      }),
+      getActiveAnnouncements(),
+      getActiveNews(),
+      getActivePartners()
     ]);
 
     const homeData = {
@@ -61,13 +36,13 @@ export async function GET() {
       announcements: announcements.map((announcement) => ({
         id: announcement.id,
         title: announcement.title,
-        content: announcement.content,
+        content: announcement.content || '',
         date: announcement.publishAt ? announcement.publishAt.toISOString().split('T')[0] : announcement.createdAt.toISOString().split('T')[0]
       })),
       latest_news: latestNews.map((article) => ({
         id: article.id,
         title: article.title,
-        excerpt: article.content.substring(0, 100) + '...',
+        excerpt: (article.content || '').substring(0, 100) + '...',
         image: article.image || '/images/news/default.jpg',
         date: article.createdAt.toISOString().split('T')[0],
         slug: article.slug
