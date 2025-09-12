@@ -1,6 +1,5 @@
 'use client'
 
-import { signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import {
   DropdownMenu,
@@ -19,6 +18,23 @@ import AdminSidebar from './Sidebar'
 export default function AdminHeader() {
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const handleLogout = async () => {
+    try {
+      // Call custom logout endpoint
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+      })
+      
+      // Redirect to login page
+      router.push('/admin-login')
+      router.refresh()
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Still redirect even if logout fails
+      router.push('/admin-login')
+    }
+  }
 
   return (
     <>
@@ -64,7 +80,7 @@ export default function AdminHeader() {
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">Administrator</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    admin@mcsk.or.ke
+                    admin@mcsk.co.ke
                   </p>
                 </div>
               </DropdownMenuLabel>
@@ -80,7 +96,7 @@ export default function AdminHeader() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-red-600"
-                onClick={() => signOut({ callbackUrl: '/login/admin' })}
+                onClick={handleLogout}
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>

@@ -42,6 +42,7 @@ export const columns: ColumnDef<BoardMember>[] = [
             alt={row.getValue('name')}
             className="rounded-full object-cover"
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       ) : null
@@ -92,26 +93,59 @@ export const columns: ColumnDef<BoardMember>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => (
-      <DataTableRowActions
-        row={row}
-        actions={[
-          {
-            label: 'Edit',
-            href: `/admin/board-members/${row.original.id}/edit`,
-          },
-          {
-            label: 'View',
-            href: `/admin/board-members/${row.original.id}`,
-          },
-          {
-            label: 'Delete',
-            onClick: () => {
-              // Handle delete
+    cell: ({ row }) => {
+      const boardMember = row.original
+      
+      const deleteBoardMember = async () => {
+        try {
+          // Add timeout to prevent hanging
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+          
+          const response = await fetch(`/api/admin/board-members/${boardMember.id}`, {
+            method: 'DELETE',
+            signal: controller.signal,
+          })
+          
+          clearTimeout(timeoutId)
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            throw new Error(`Failed to delete board member: ${response.status} ${errorText}`)
+          }
+          
+          // Invalidate cache after successful deletion
+          await fetch('/api/revalidate?path=/admin/board-members')
+          await fetch('/api/revalidate?path=/about/leadership')
+          
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Error deleting board member:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Delete request timed out. Please try again.')
+          }
+          return Promise.reject(error)
+        }
+      }
+      
+      return (
+        <DataTableRowActions
+          row={row}
+          actions={[
+            {
+              label: 'Edit',
+              href: `/admin/board-members/${boardMember.id}/edit`,
             },
-          },
-        ]}
-      />
-    ),
+            {
+              label: 'View',
+              href: `/admin/board-members/${boardMember.id}`,
+            },
+          ]}
+          onDelete={deleteBoardMember}
+          itemName={boardMember.name}
+          itemType="Board Member"
+        />
+      )
+    },
   },
 ] 

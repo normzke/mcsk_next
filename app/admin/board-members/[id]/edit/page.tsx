@@ -15,10 +15,10 @@ interface EditBoardMemberPageProps {
 }
 
 export default async function EditBoardMemberPage({ params }: EditBoardMemberPageProps) {
-  const boardMember = await prisma.managementMember.findFirst({
+  const boardMember = await prisma.boardmember.findFirst({
     where: {
       id: params.id,
-      role: 'board_member',
+      deletedAt: null,
     },
   })
 
@@ -54,4 +54,4 @@ export default async function EditBoardMemberPage({ params }: EditBoardMemberPag
       </div>
     </div>
   )
-} 
+}

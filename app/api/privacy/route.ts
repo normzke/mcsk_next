@@ -69,7 +69,7 @@ export async function GET() {
         {
           id: "contact-us",
           title: "Contact Us",
-          content: "<p>If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us at:</p><p>Music Copyright Society of Kenya<br>P.O. Box 14806-00800<br>Nairobi, Kenya<br>Email: privacy@mcsk.or.ke<br>Phone: +254 20 XXX XXXX</p>"
+          content: "<p>If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us at:</p><p>Music Copyright Society of Kenya<br>P.O. Box 14806-00800<br>Nairobi, Kenya<br>Email: privacy@mcsk.org<br>Phone: +254 20 XXX XXXX</p>"
         }
       ]
     };

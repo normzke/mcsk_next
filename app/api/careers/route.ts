@@ -149,12 +149,12 @@ export async function GET() {
       internships: {
         title: "Internship Program",
         description: "<p>MCSK offers internship opportunities for students and recent graduates interested in music rights management, copyright law, and the music industry. Our internships provide hands-on experience and mentorship from industry professionals.</p><p>Internships are available in various departments, including Licensing, Membership Services, Legal, and Communications. Most internships run for 3-6 months and may be paid or unpaid depending on the position.</p>",
-        currentOpenings: "We are currently accepting applications for our Fall 2024 internship program. Please send your resume and cover letter to internships@mcsk.or.ke with the subject line 'Internship Application - [Department of Interest]'."
+        currentOpenings: "We are currently accepting applications for our Fall 2024 internship program. Please send your resume and cover letter to internships@mcsk.org with the subject line 'Internship Application - [Department of Interest]'."
       },
       contact: {
         title: "Contact HR",
         description: "If you have any questions about our current openings or the application process, please contact our HR department.",
-        email: "careers@mcsk.or.ke",
+        email: "careers@mcsk.org",
         phone: "+254 20 XXX XXXX"
       }
     };

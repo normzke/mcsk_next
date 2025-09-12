@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -45,22 +44,20 @@ export function LoginForm() {
       setError(null)
       console.log('[LoginForm] Attempting login with email:', data.email)
 
-      const result = await signIn('credentials', {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-        callbackUrl: '/admin/dashboard'
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
       })
 
-      console.log('[LoginForm] Sign in result:', result)
+      const result = await response.json()
 
-      if (!result) {
-        console.error('[LoginForm] No result from sign in')
-        setError('An error occurred during sign in')
-        return
-      }
-
-      if (!result.ok) {
+      if (!response.ok) {
         const errorMessage = result.error || 'Invalid email or password'
         console.error('[LoginForm] Login failed:', errorMessage)
         setError(errorMessage)
@@ -68,8 +65,20 @@ export function LoginForm() {
       }
 
       console.log('[LoginForm] Login successful, redirecting to dashboard')
+      
+      // Add debugging
+      console.log('[LoginForm] Current location:', window.location.href)
+      console.log('[LoginForm] Target location:', '/admin/dashboard')
+      
+      // Use window.location.replace for more reliable redirect
+      try {
+        window.location.replace('/admin/dashboard')
+        console.log('[LoginForm] Redirect initiated')
+      } catch (error) {
+        console.error('[LoginForm] Redirect error:', error)
+        // Fallback to router.push
       router.push('/admin/dashboard')
-      router.refresh()
+      }
     } catch (error) {
       console.error('[LoginForm] Login error:', error)
       setError(error instanceof Error ? error.message : 'An error occurred. Please try again.')
@@ -100,7 +109,7 @@ export function LoginForm() {
                   </div>
                   <Input
                     type="email"
-                    placeholder="admin@mcsk.co.ke"
+                    placeholder="Enter your email"
                     className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-blue-200/50 focus:border-blue-400 focus:ring-blue-400/20 rounded-lg"
                     {...field}
                     disabled={isLoading}
@@ -125,7 +134,7 @@ export function LoginForm() {
                   </div>
                   <Input
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="Enter your password"
                     className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-blue-200/50 focus:border-blue-400 focus:ring-blue-400/20 rounded-lg"
                     {...field}
                     disabled={isLoading}

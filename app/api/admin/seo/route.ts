@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(req: Request) {
@@ -24,13 +24,13 @@ export async function GET(req: Request) {
     }
 
     const [seoMetas, total] = await Promise.all([
-      prisma.seoMeta.findMany({
+      prisma.seometa.findMany({
         where,
         orderBy: { path: 'asc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.seoMeta.count({ where }),
+      prisma.seometa.count({ where }),
     ])
 
     return NextResponse.json({
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     const body = await req.json()
 
     // Check if path already exists
-    const existing = await prisma.seoMeta.findFirst({
+    const existing = await prisma.seometa.findFirst({
       where: {
         path: body.path,
       },
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
     }
 
     // Create SeoMeta record with required fields
-    const seoMeta = await prisma.seoMeta.create({
+    const seoMeta = await prisma.seometa.create({
       data: {
         // Let Prisma handle id generation
         path: body.path,

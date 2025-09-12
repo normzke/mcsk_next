@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import type { Partner } from '@/types'
 import { Loader2 } from 'lucide-react'
 import { ImageUpload } from '@/components/ui/image-upload'
@@ -53,40 +53,61 @@ export function PartnerForm({ initialData }: PartnerFormProps) {
   async function onSubmit(data: PartnerFormValues) {
     try {
       setIsLoading(true)
+      toast.success("Saving...")
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      let response: Response
 
       if (initialData) {
-        // Update existing partner
-        await fetch(`/api/admin/partners/${initialData.id}`, {
+        response = await fetch(`/api/admin/partners/${initialData.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to update partner')
+        }
       } else {
-        // Create new partner
-        await fetch('/api/admin/partners', {
+        response = await fetch('/api/admin/partners', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to create partner')
+        }
       }
 
+      clearTimeout(timeoutId)
+
+      await Promise.all([
+        fetch('/api/revalidate?path=/admin/partners'),
+        fetch('/api/revalidate?path=/partners')
+      ])
+      
+      toast.success(`Partner ${initialData ? 'updated' : 'created'} successfully.`)
       router.refresh()
       router.push('/admin/partners')
-      toast({
-        title: 'Success',
-        description: `Partner ${initialData ? 'updated' : 'created'} successfully.`,
-      })
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        toast.error(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }

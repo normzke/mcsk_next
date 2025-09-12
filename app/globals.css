@@ -75,6 +75,20 @@
   }
 }
 
+/* Hide public header and footer for admin routes */
+[data-path^="/admin"] header,
+[data-path^="/admin"] footer,
+[data-path="/admin-login"] header,
+[data-path="/admin-login"] footer {
+  display: none !important;
+}
+
+/* Ensure admin pages take full height */
+[data-path^="/admin"] main,
+[data-path="/admin-login"] main {
+  min-height: 100vh !important;
+}
+
 /* Modern Animations */
 @keyframes float {
   0%, 100% { transform: translateY(0); }

@@ -83,6 +83,59 @@ export const columns: ColumnDef<any>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }: { row: Row<any> }) => <DataTableRowActions row={row} />,
+    cell: ({ row }: { row: Row<any> }) => {
+      const managementMember = row.original
+      
+      const deleteManagementMember = async () => {
+        try {
+          // Add timeout to prevent hanging
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+          
+          const response = await fetch(`/api/admin/management-members/${managementMember.id}`, {
+            method: 'DELETE',
+            signal: controller.signal,
+          })
+          
+          clearTimeout(timeoutId)
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            throw new Error(`Failed to delete management member: ${response.status} ${errorText}`)
+          }
+          
+          // Invalidate cache after successful deletion
+          await fetch('/api/revalidate?path=/admin/management')
+          await fetch('/api/revalidate?path=/about/leadership')
+          
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Error deleting management member:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Delete request timed out. Please try again.')
+          }
+          return Promise.reject(error)
+        }
+      }
+      
+      return (
+        <DataTableRowActions
+          row={row}
+          actions={[
+            {
+              label: 'Edit',
+              href: `/admin/management/${managementMember.id}/edit`,
+            },
+            {
+              label: 'View',
+              href: `/admin/management/${managementMember.id}`,
+            },
+          ]}
+          onDelete={deleteManagementMember}
+          itemName={managementMember.name}
+          itemType="Management Member"
+        />
+      )
+    },
   },
 ]

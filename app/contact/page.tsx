@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Contact Us | Music Copyright Society of Kenya",
     description: "Get in touch with MCSK. Find our contact information, office locations, and send us your inquiries.",
-    url: "https://mcsk.or.ke/contact",
+    url: "https://mcsk.org/contact",
     siteName: "Music Copyright Society of Kenya",
     locale: "en_US",
     type: "website",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     description: "Get in touch with MCSK. Find our contact information, office locations, and send us your inquiries.",
   },
   alternates: {
-    canonical: "https://mcsk.or.ke/contact",
+    canonical: "https://mcsk.org/contact",
   },
 }
 
@@ -27,7 +27,7 @@ async function getContactData() {
   try {
     // Use relative URL for API route within the same Next.js app
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/contact`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 60 }, // Cache for 1 minute for faster updates
     })
     
     if (!res.ok) {
@@ -55,7 +55,7 @@ async function getContactData() {
           name: "Headquarters - Nairobi",
           address: "Maua Close, Off Parklands Road, Westlands, Nairobi",
           phone: "+254 20 2535988/9",
-          email: "info@mcsk.or.ke",
+          email: "info@mcsk.org",
           hours: "Monday - Friday: 8:00 AM - 5:00 PM",
           mapUrl: "https://maps.google.com/?q=MCSK+Headquarters+Nairobi"
         },
@@ -64,7 +64,7 @@ async function getContactData() {
           name: "Mombasa Regional Office",
           address: "Moi Avenue, Mombasa",
           phone: "+254 41 2229461",
-          email: "mombasa@mcsk.or.ke",
+          email: "mombasa@mcsk.org",
           hours: "Monday - Friday: 8:00 AM - 5:00 PM",
           mapUrl: "https://maps.google.com/?q=MCSK+Mombasa+Office"
         },
@@ -73,7 +73,7 @@ async function getContactData() {
           name: "Kisumu Regional Office",
           address: "Oginga Odinga Street, Kisumu",
           phone: "+254 57 2021712",
-          email: "kisumu@mcsk.or.ke",
+          email: "kisumu@mcsk.org",
           hours: "Monday - Friday: 8:00 AM - 5:00 PM",
           mapUrl: "https://maps.google.com/?q=MCSK+Kisumu+Office"
         }
@@ -82,25 +82,25 @@ async function getContactData() {
         {
           id: "1",
           name: "Membership Services",
-          email: "membership@mcsk.or.ke",
+          email: "membership@mcsk.org",
           phone: "+254 20 2535988 Ext. 101"
         },
         {
           id: "2",
           name: "Licensing Department",
-          email: "licensing@mcsk.or.ke",
+          email: "licensing@mcsk.org",
           phone: "+254 20 2535988 Ext. 102"
         },
         {
           id: "3",
           name: "Distribution & Documentation",
-          email: "distribution@mcsk.or.ke",
+          email: "distribution@mcsk.org",
           phone: "+254 20 2535988 Ext. 103"
         },
         {
           id: "4",
           name: "Media & Communications",
-          email: "media@mcsk.or.ke",
+          email: "media@mcsk.org",
           phone: "+254 20 2535988 Ext. 104"
         }
       ],

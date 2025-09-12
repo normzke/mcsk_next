@@ -65,26 +65,72 @@ export const columns: ColumnDef<Service>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => (
-      <DataTableRowActions
-        row={row}
-        actions={[
-          {
-            label: 'Edit',
-            href: `/admin/services/${row.original.id}/edit`,
-          },
-          {
-            label: 'View',
-            href: `/admin/services/${row.original.id}`,
-          },
-          {
-            label: 'Delete',
-            onClick: () => {
-              // Handle delete
+    cell: ({ row }) => {
+      const service = row.original
+      
+      const deleteService = async () => {
+        try {
+          // Add timeout to prevent hanging - increased to 20 seconds
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 second timeout
+          
+          console.log('Attempting to delete service:', service.id)
+          
+          const response = await fetch(`/api/admin/services/${service.id}`, {
+            method: 'DELETE',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
             },
-          },
-        ]}
-      />
-    ),
+          })
+          
+          clearTimeout(timeoutId)
+          
+          console.log('Delete response status:', response.status)
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            console.error('Delete failed with status:', response.status, 'Error:', errorText)
+            throw new Error(`Failed to delete service: ${response.status} ${errorText}`)
+          }
+          
+          const result = await response.json()
+          console.log('Delete successful:', result)
+          
+          // Invalidate cache after successful deletion
+          await Promise.all([
+            fetch('/api/revalidate?path=/admin/services'),
+            fetch('/api/revalidate?path=/services')
+          ])
+          
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Error deleting service:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Delete request timed out. Please try again.')
+          }
+          return Promise.reject(error)
+        }
+      }
+      
+      return (
+        <DataTableRowActions
+          row={row}
+          actions={[
+            {
+              label: 'Edit',
+              href: `/admin/services/${service.id}/edit`,
+            },
+            {
+              label: 'View',
+              href: `/admin/services/${service.id}`,
+            },
+          ]}
+          onDelete={deleteService}
+          itemName={service.title}
+          itemType="Service"
+        />
+      )
+    },
   },
 ] 

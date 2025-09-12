@@ -1,8 +1,31 @@
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    // Mock data for gallery
+    // Fetch gallery items from database
+    const dbGalleryItems = await prisma.gallery.findMany({
+      where: {
+        deletedAt: null,
+        isActive: true,
+      },
+      orderBy: {
+        order: 'asc',
+      },
+    });
+
+    // Transform the data to match the expected format
+    const items = dbGalleryItems.map((item) => ({
+      id: item.id,
+      title: item.title,
+      date: item.createdAt.toISOString().split('T')[0],
+      location: 'MCSK Events',
+      description: item.description || item.title,
+      images: [item.image],
+      category: item.type === 'video' ? 'Videos' : 'Photos',
+      tags: ['MCSK', 'Music', 'Events']
+    }));
+
     const galleryData = {
       hero: {
         title: "MCSK Gallery",
@@ -11,50 +34,7 @@ export async function GET() {
       },
       categories: ["Events", "Performances", "Workshops"],
       tags: ["Music", "Artists", "Copyright", "Royalties", "Licensing"],
-      items: [
-        {
-          id: "1",
-          title: "Annual General Meeting 2024",
-          date: "2024-03-15",
-          location: "Kenyatta International Convention Centre, Nairobi",
-          description: "Members gathered for the annual general meeting to discuss achievements and future plans.",
-          images: [
-            "/images/gallery/agm1.jpg",
-            "/images/gallery/agm2.jpg",
-            "/images/gallery/agm3.jpg"
-          ],
-          category: "Events",
-          tags: ["Meeting", "Members"]
-        },
-        {
-          id: "2",
-          title: "Music Rights Workshop",
-          date: "2024-02-20",
-          location: "Sarova Stanley Hotel, Nairobi",
-          description: "Workshop for musicians on understanding and protecting their copyright.",
-          images: [
-            "/images/gallery/workshop1.jpg",
-            "/images/gallery/workshop2.jpg"
-          ],
-          category: "Workshops",
-          tags: ["Education", "Copyright"]
-        },
-        {
-          id: "3",
-          title: "MCSK Music Festival",
-          date: "2024-01-25",
-          location: "Uhuru Gardens, Nairobi",
-          description: "Annual music festival showcasing Kenya's top musical talent.",
-          images: [
-            "/images/gallery/festival1.jpg",
-            "/images/gallery/festival2.jpg",
-            "/images/gallery/festival3.jpg",
-            "/images/gallery/festival4.jpg"
-          ],
-          category: "Performances",
-          tags: ["Music", "Festival", "Artists"]
-        }
-      ],
+      items,
       social_media: {
         title: "Follow Us",
         description: "Stay connected with MCSK on social media for the latest updates and photos.",

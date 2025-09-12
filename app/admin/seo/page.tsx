@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default async function SEOMetaPage() {
   let seoMetas: SeoMeta[] = []
   try {
-    const dbSeoMetas = await prisma.seoMeta.findMany({
+    const dbSeoMetas = await prisma.seometa.findMany({
       orderBy: { path: 'asc' },
     })
     seoMetas = dbSeoMetas.map((seoMeta: any) => ({

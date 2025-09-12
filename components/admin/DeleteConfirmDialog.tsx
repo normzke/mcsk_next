@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { AlertTriangle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean
@@ -38,19 +38,13 @@ export function DeleteConfirmDialog({
     try {
       setIsDeleting(true)
       await onConfirm()
-      toast({
-        title: 'Item deleted',
-        description: `${itemName} has been deleted successfully.`,
-      })
+      toast.success(`${itemName} has been deleted successfully.`)
       router.refresh()
       onClose()
     } catch (error) {
       console.error('Error deleting item:', error)
-      toast({
-        title: 'Error',
-        description: 'There was an error deleting the item. Please try again.',
-        variant: 'destructive',
-      })
+      const errorMessage = error instanceof Error ? error.message : 'There was an error deleting the item. Please try again.'
+      toast.error(errorMessage)
     } finally {
       setIsDeleting(false)
     }

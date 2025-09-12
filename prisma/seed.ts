@@ -4,6 +4,10 @@ import { seedHeroSlides } from './seed/hero-slides'
 import { seedMembershipBenefits } from './seed/membership-benefits'
 import { seedMembershipCategories } from './seed/membership-categories'
 import { seedLicenseTypes } from './seed/license-types'
+import { seedSiteSettings } from './seed/site-settings'
+import { seedSocialMedia } from './seed/social-media'
+import { seedPaymentPackages } from './seed/payment-packages'
+import { seedMpesaCredentials } from './seed/mpesa-credentials'
 
 const prisma = new PrismaClient()
 
@@ -23,6 +27,8 @@ async function main() {
       email: 'admin@mcsk.co.ke',
       password: adminPassword,
       role: 'admin',
+      id: 'admin-user-id',
+      updatedAt: new Date(),
     },
   })
 
@@ -33,6 +39,10 @@ async function main() {
   const membershipCategories = await seedMembershipCategories()
   const licenseTypes = await seedLicenseTypes()
   const heroSlides = await seedHeroSlides()
+  const socialMediaHandles = await seedSocialMedia()
+  const paymentPackages = await seedPaymentPackages()
+  const mpesaCredentials = await seedMpesaCredentials()
+  await seedSiteSettings()
 
   // Create settings
   const settings = await Promise.all([
@@ -60,10 +70,11 @@ async function main() {
 
   // Create SEO meta
   const seoMeta = await Promise.all([
-    prisma.seoMeta.upsert({
+    prisma.seometa.upsert({
       where: { path: '/' },
       update: {},
       create: {
+        id: 'home-seo',
         path: '/',
         title: 'MCSK - Music Copyright Society of Kenya',
         description: 'Protecting the rights of musicians in Kenya',
@@ -71,12 +82,14 @@ async function main() {
         ogTitle: 'MCSK - Music Copyright Society of Kenya',
         ogDescription: 'Protecting the rights of musicians in Kenya',
         ogImage: null,
+        updatedAt: new Date(),
       } as any, // Use type assertion to bypass TypeScript errors
     }),
-    prisma.seoMeta.upsert({
+    prisma.seometa.upsert({
       where: { path: '/about' },
       update: {},
       create: {
+        id: 'about-seo',
         path: '/about',
         title: 'About MCSK - Music Copyright Society of Kenya',
         description: 'Learn about MCSK and our mission to protect musicians',
@@ -84,6 +97,7 @@ async function main() {
         ogTitle: 'About MCSK',
         ogDescription: 'Learn about MCSK and our mission to protect musicians',
         ogImage: null,
+        updatedAt: new Date(),
       } as any, // Use type assertion to bypass TypeScript errors
     }),
   ])

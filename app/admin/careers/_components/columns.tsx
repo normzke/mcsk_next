@@ -134,22 +134,72 @@ export const columns: ColumnDef<Job>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => (
-      <DataTableRowActions
-        row={row}
-        actions={[
-          {
-            label: "Edit",
-            href: `/admin/careers/${row.original.id}/edit`,
-          },
-          {
-            label: "Delete",
-            onClick: () => {
-              // Handle delete
+    cell: ({ row }) => {
+      const career = row.original
+      
+      const deleteCareer = async () => {
+        try {
+          // Add timeout to prevent hanging - increased to 20 seconds
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 second timeout
+          
+          console.log('Attempting to delete career:', career.id)
+          
+          const response = await fetch(`/api/admin/careers/${career.id}`, {
+            method: 'DELETE',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
             },
-          },
-        ]}
-      />
-    ),
+          })
+          
+          clearTimeout(timeoutId)
+          
+          console.log('Delete response status:', response.status)
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            console.error('Delete failed with status:', response.status, 'Error:', errorText)
+            throw new Error(`Failed to delete career: ${response.status} ${errorText}`)
+          }
+          
+          const result = await response.json()
+          console.log('Delete successful:', result)
+          
+          // Invalidate cache after successful deletion
+          await Promise.all([
+            fetch('/api/revalidate?path=/admin/careers'),
+            fetch('/api/revalidate?path=/careers')
+          ])
+          
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Error deleting career:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Delete request timed out. Please try again.')
+          }
+          return Promise.reject(error)
+        }
+      }
+      
+      return (
+        <DataTableRowActions
+          row={row}
+          actions={[
+            {
+              label: "Edit",
+              href: `/admin/careers/${career.id}/edit`,
+            },
+            {
+              label: "View",
+              href: `/admin/careers/${career.id}`,
+            },
+          ]}
+          onDelete={deleteCareer}
+          itemName={career.title}
+          itemType="Career"
+        />
+      )
+    },
   },
 ] 

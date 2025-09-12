@@ -1,105 +1,83 @@
 import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
+    // Fetch data from database
+    const [heroSlides, announcements, latestNews, partners] = await Promise.all([
+      prisma.heroSlide.findMany({
+        where: {
+          deletedAt: null,
+          isActive: true,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+        take: 5,
+      }),
+      prisma.announcement.findMany({
+        where: {
+          deletedAt: null,
+          isPublished: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 3,
+      }),
+      prisma.news.findMany({
+        where: {
+          deletedAt: null,
+          isActive: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 4,
+      }),
+      prisma.partner.findMany({
+        where: {
+          deletedAt: null,
+          isActive: true,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+        take: 6,
+      }),
+    ]);
+
     const homeData = {
-      hero_slides: [
-        {
-          id: '1',
-          title: 'Protecting Music Rights',
-          description: 'MCSK is dedicated to protecting and promoting the rights of music creators in Kenya.',
-          image: '/images/hero/slide1.jpg',
-          cta: { text: 'Learn More', url: '/about' }
-        },
-        {
-          id: '2',
-          title: 'Join MCSK Today',
-          description: 'Become a member and ensure your music rights are protected.',
-          image: '/images/hero/slide2.jpg',
-          cta: { text: 'Join Now', url: '/membership' }
-        },
-        {
-          id: '3',
-          title: 'Music Licensing Made Easy',
-          description: 'Get the right license for your business needs.',
-          image: '/images/hero/slide3.jpg',
-          cta: { text: 'Get Licensed', url: '/licensing' }
+      hero_slides: heroSlides.map((slide) => ({
+        id: slide.id,
+        title: slide.title,
+        description: slide.description || slide.subtitle || '',
+        image: slide.image || '/images/hero/default.jpg',
+        cta: {
+          text: slide.buttonText || 'Learn More',
+          url: slide.buttonLink || '/about'
         }
-      ],
-      announcements: [
-        {
-          id: '1',
-          title: 'Annual General Meeting 2024',
-          content: 'The MCSK AGM will be held on March 15th, 2024. All members are invited to attend.',
-          date: '2024-03-15'
-        },
-        {
-          id: '2',
-          title: 'New Digital Licensing Platform',
-          content: 'MCSK launches new online platform for easy music licensing.',
-          date: '2024-02-01'
-        },
-        {
-          id: '3',
-          title: 'Royalty Distribution Update',
-          content: 'Q1 2024 royalty distribution schedule announced.',
-          date: '2024-01-15'
-        }
-      ],
-      latest_news: [
-        {
-          id: '1',
-          title: 'MCSK Partners with Global Rights Organizations',
-          excerpt: 'New international partnerships expand opportunities for Kenyan musicians.',
-          image: '/images/news/partnership.jpg',
-          date: '2024-02-20',
-          slug: 'mcsk-global-partnerships'
-        },
-        {
-          id: '2',
-          title: 'Music Industry Workshop Series',
-          excerpt: 'Free workshops for members on music business and copyright.',
-          image: '/images/news/workshop.jpg',
-          date: '2024-02-15',
-          slug: 'music-industry-workshops'
-        },
-        {
-          id: '3',
-          title: 'Copyright Law Updates',
-          excerpt: 'Important changes to Kenyan copyright law affecting musicians.',
-          image: '/images/news/copyright.jpg',
-          date: '2024-02-10',
-          slug: 'copyright-law-updates'
-        },
-        {
-          id: '4',
-          title: 'New Board Members Appointed',
-          excerpt: 'MCSK welcomes new board members to strengthen governance.',
-          image: '/images/news/board.jpg',
-          date: '2024-02-05',
-          slug: 'new-board-members'
-        }
-      ],
-      partners: [
-        {
-          id: '1',
-          name: 'CISAC',
-          logo: '/images/partners/cisac.png',
-          url: 'https://www.cisac.org'
-        },
-        {
-          id: '2',
-          name: 'KECOBO',
-          logo: '/images/partners/kecobo.png',
-          url: 'https://www.copyright.go.ke'
-        },
-        {
-          id: '3',
-          name: 'Ministry of Culture',
-          logo: '/images/partners/culture.png',
-          url: 'https://www.culture.go.ke'
-        }
-      ]
+      })),
+      announcements: announcements.map((announcement) => ({
+        id: announcement.id,
+        title: announcement.title,
+        content: announcement.content,
+        date: announcement.publishAt ? announcement.publishAt.toISOString().split('T')[0] : announcement.createdAt.toISOString().split('T')[0]
+      })),
+      latest_news: latestNews.map((article) => ({
+        id: article.id,
+        title: article.title,
+        excerpt: article.content.substring(0, 100) + '...',
+        image: article.image || '/images/news/default.jpg',
+        date: article.createdAt.toISOString().split('T')[0],
+        slug: article.slug
+      })),
+      partners: partners.map((partner) => ({
+        id: partner.id,
+        name: partner.name,
+        logo: partner.logo || '/images/partners/default.png',
+        url: partner.website || '#'
+      }))
     }
 
     return NextResponse.json({ data: homeData })

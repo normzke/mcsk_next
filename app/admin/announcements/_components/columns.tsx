@@ -43,6 +43,7 @@ export const columns: ColumnDef<Announcement>[] = [
             alt={row.getValue('title')}
             className="rounded-md object-cover"
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       ) : null
@@ -78,26 +79,72 @@ export const columns: ColumnDef<Announcement>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => (
-      <DataTableRowActions
-        row={row}
-        actions={[
-          {
-            label: 'Edit',
-            href: `/admin/announcements/${row.original.id}/edit`,
-          },
-          {
-            label: 'View',
-            href: `/admin/announcements/${row.original.id}`,
-          },
-          {
-            label: 'Delete',
-            onClick: () => {
-              // Handle delete
+    cell: ({ row }) => {
+      const announcement = row.original
+      
+      const deleteAnnouncement = async () => {
+        try {
+          // Add timeout to prevent hanging - increased to 20 seconds
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 second timeout
+          
+          console.log('Attempting to delete announcement:', announcement.id)
+          
+          const response = await fetch(`/api/admin/announcements/${announcement.id}`, {
+            method: 'DELETE',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
             },
-          },
-        ]}
-      />
-    ),
+          })
+          
+          clearTimeout(timeoutId)
+          
+          console.log('Delete response status:', response.status)
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            console.error('Delete failed with status:', response.status, 'Error:', errorText)
+            throw new Error(`Failed to delete announcement: ${response.status} ${errorText}`)
+          }
+          
+          const result = await response.json()
+          console.log('Delete successful:', result)
+          
+          // Invalidate cache after successful deletion
+          await Promise.all([
+            fetch('/api/revalidate?path=/admin/announcements'),
+            fetch('/api/revalidate?path=/announcements')
+          ])
+          
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Error deleting announcement:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Delete request timed out. Please try again.')
+          }
+          return Promise.reject(error)
+        }
+      }
+      
+      return (
+        <DataTableRowActions
+          row={row}
+          actions={[
+            {
+              label: 'Edit',
+              href: `/admin/announcements/${announcement.id}/edit`,
+            },
+            {
+              label: 'View',
+              href: `/admin/announcements/${announcement.id}`,
+            },
+          ]}
+          onDelete={deleteAnnouncement}
+          itemName={announcement.title}
+          itemType="Announcement"
+        />
+      )
+    },
   },
 ] 

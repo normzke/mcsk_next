@@ -1,6 +1,8 @@
 import { Metadata } from "next"
 import MembershipContent from "./components/membership-content"
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "Membership | Music Copyright Society of Kenya",
   description: "Join MCSK as a member. Learn about membership benefits, requirements, and application process.",
@@ -8,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Membership | Music Copyright Society of Kenya",
     description: "Join MCSK as a member. Learn about membership benefits, requirements, and application process.",
-    url: "https://mcsk.or.ke/membership",
+    url: "https://mcsk.org/membership",
     siteName: "Music Copyright Society of Kenya",
     locale: "en_US",
     type: "website",
@@ -19,7 +21,7 @@ export const metadata: Metadata = {
     description: "Join MCSK as a member. Learn about membership benefits, requirements, and application process.",
   },
   alternates: {
-    canonical: "https://mcsk.or.ke/membership",
+    canonical: "https://mcsk.org/membership",
   },
 }
 
@@ -27,7 +29,7 @@ async function getMembershipData() {
   try {
     // Use relative URL for API route within the same Next.js app
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/membership`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 60 }, // Cache for 1 minute for faster updates
     })
     
     if (!res.ok) {

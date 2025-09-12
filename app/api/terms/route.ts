@@ -79,7 +79,7 @@ export async function GET() {
         {
           id: "contact",
           title: "Contact Us",
-          content: "<p>If you have any questions about these Terms, please contact us at:</p><p>Music Copyright Society of Kenya<br>P.O. Box 14806-00800<br>Nairobi, Kenya<br>Email: legal@mcsk.or.ke<br>Phone: +254 20 XXX XXXX</p>"
+          content: "<p>If you have any questions about these Terms, please contact us at:</p><p>Music Copyright Society of Kenya<br>P.O. Box 14806-00800<br>Nairobi, Kenya<br>Email: legal@mcsk.org<br>Phone: +254 20 XXX XXXX</p>"
         }
       ]
     };

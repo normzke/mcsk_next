@@ -211,10 +211,13 @@ export async function seedLicenseTypes() {
 
   const result = await Promise.all(
     licenseTypes.map(licenseType =>
-      prisma.licenseType.upsert({
+      prisma.licensetype.upsert({
         where: { id: licenseType.id },
         update: licenseType,
-        create: licenseType
+        create: {
+          ...licenseType,
+          updatedAt: new Date()
+        }
       })
     )
   )

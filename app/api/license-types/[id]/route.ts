@@ -26,7 +26,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const licenseType = await prisma.licenseType.findUnique({
+    const licenseType = await prisma.licensetype.findUnique({
       where: { id: params.id },
       include: {
         _count: {
@@ -62,7 +62,7 @@ export async function PUT(
     const body = await request.json();
     const validatedData = licenseTypeUpdateSchema.parse(body);
 
-    const updatedLicenseType = await prisma.licenseType.update({
+    const updatedLicenseType = await prisma.licensetype.update({
       where: { id: params.id },
       data: validatedData,
     });
@@ -89,7 +89,7 @@ export async function DELETE(
 ) {
   try {
     // Using soft delete by updating deletedAt
-    await prisma.licenseType.update({
+    await prisma.licensetype.update({
       where: { id: params.id },
       data: { deletedAt: new Date() }
     });

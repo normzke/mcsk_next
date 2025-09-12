@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import type { LicenseType } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -83,31 +83,41 @@ export function LicenseTypeForm({ initialData }: LicenseTypeFormProps) {
   const { fields: feeFields, append: appendFee, remove: removeFee } = feesArray
 
   async function onSubmit(data: LicenseTypeFormValues) {
-    setIsLoading(true)
-
     try {
+      setIsLoading(true)
+      toast.success("Saving...")
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
       if (initialData) {
         await api.licensing.types.update(initialData.id, data)
       } else {
         await api.licensing.types.create(data)
       }
 
-      toast({
-        title: "Success",
-        description: `License type ${initialData ? "updated" : "created"} successfully.`,
-      })
+      clearTimeout(timeoutId)
+
+      await Promise.all([
+        fetch('/api/revalidate?path=/admin/license-types'),
+        fetch('/api/revalidate?path=/licensing')
+      ])
+
+      toast.success(`License type ${initialData ? "updated" : "created"} successfully.`)
       
       // Redirect to license types list
       window.location.href = '/admin/license-types'
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      })
+      console.error(error)
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        toast.error(errorMessage)
+      }
+    } finally {
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   return (

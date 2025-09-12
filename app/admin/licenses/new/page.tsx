@@ -24,7 +24,7 @@ export default async function NewLicensePage() {
         name: 'asc',
       },
     }),
-    prisma.licenseType.findMany({
+    prisma.licensetype.findMany({
       where: {
         deletedAt: null,
         isActive: true,

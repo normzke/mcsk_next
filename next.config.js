@@ -8,72 +8,41 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'mcsk.or.ke'
+        hostname: 'mcsk.org'
       },
       {
         protocol: 'https',
-        hostname: 'storage.mcsk.or.ke'
+        hostname: 'storage.mcsk.org'
       },
     ],
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   env: {
-    NEXT_PUBLIC_API_URL: 'http://localhost:3000/api',
-    NEXT_PUBLIC_APP_URL: 'http://localhost:3000'
+    NEXT_PUBLIC_API_URL: process.env.NODE_ENV === 'production' 
+      ? 'https://mcsk.org/api' 
+      : 'http://localhost:3000/api',
+    NEXT_PUBLIC_APP_URL: process.env.NODE_ENV === 'production' 
+      ? 'https://mcsk.org' 
+      : 'http://localhost:3000'
   },
-  // Enable static exports if needed
-  // output: 'export',
-  // Enable trailing slashes if needed
-  // trailingSlash: true,
-  // Add rewrites for API proxy in development
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:3000/api/:path*'
-      }
-    ]
+  // Performance optimizations
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client'],
+    optimizeCss: true,
+    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
   },
-  // Add redirects if needed
-  async redirects() {
-    return [
-      {
-        source: '/home',
-        destination: '/',
-        permanent: true,
-      },
-    ]
-  },
-  // Add headers for security
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-        ],
-      },
-    ]
-  },
-  // Customize webpack if needed
-  webpack: (config, { dev, isServer }) => {
-    // Add custom webpack config here
-    return config
-  },
+  // Bundle optimization
+  swcMinify: true,
+  compress: true,
+  // Output configuration
+  output: 'standalone',
+  // Disable static generation for dynamic content
+  trailingSlash: false,
+  // Optimize for production
+  poweredByHeader: false,
 }
 
 module.exports = nextConfig; 

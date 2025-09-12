@@ -14,7 +14,7 @@ export async function GET() {
           name: "Head Office - Nairobi",
           address: "MCSK House, Musa Gitau Road\nOff Waiyaki Way, Westlands\nP.O. Box 14806-00800\nNairobi, Kenya",
           phone: "+254 20 2668752",
-          email: "info@mcsk.or.ke",
+          email: "info@mcsk.org",
           hours: "Monday - Friday: 8:00 AM - 5:00 PM",
           map: {
             lat: -1.2921,
@@ -27,7 +27,7 @@ export async function GET() {
           name: "Coast Region Office - Mombasa",
           address: "Furaha Plaza, Ground Floor\nNkrumah Road\nP.O. Box 84837-80100\nMombasa, Kenya",
           phone: "+254 41 2229461",
-          email: "mombasa@mcsk.or.ke",
+          email: "mombasa@mcsk.org",
           hours: "Monday - Friday: 8:00 AM - 5:00 PM",
           map: {
             lat: -4.0435,
@@ -40,7 +40,7 @@ export async function GET() {
           name: "Western Region Office - Kisumu",
           address: "Mega Plaza, 2nd Floor\nOginga Odinga Street\nP.O. Box 1884-40100\nKisumu, Kenya",
           phone: "+254 57 2021988",
-          email: "kisumu@mcsk.or.ke",
+          email: "kisumu@mcsk.org",
           hours: "Monday - Friday: 8:00 AM - 5:00 PM",
           map: {
             lat: -0.1022,
@@ -54,28 +54,28 @@ export async function GET() {
           id: '1',
           name: "Member Services",
           description: "For membership registration, updates, and general inquiries",
-          email: "members@mcsk.or.ke",
+          email: "members@mcsk.org",
           phone: "+254 20 2668753"
         },
         {
           id: '2',
           name: "Licensing",
           description: "For music usage licenses and royalty payments",
-          email: "licensing@mcsk.or.ke",
+          email: "licensing@mcsk.org",
           phone: "+254 20 2668754"
         },
         {
           id: '3',
           name: "Legal Affairs",
           description: "For copyright infringement and legal matters",
-          email: "legal@mcsk.or.ke",
+          email: "legal@mcsk.org",
           phone: "+254 20 2668755"
         },
         {
           id: '4',
           name: "Media & Communications",
           description: "For press inquiries and media relations",
-          email: "media@mcsk.or.ke",
+          email: "media@mcsk.org",
           phone: "+254 20 2668756"
         }
       ],

@@ -16,7 +16,7 @@ interface EditSEOMetaPageProps {
 }
 
 export default async function EditSEOMetaPage({ params }: EditSEOMetaPageProps) {
-  const seoMeta = await prisma.seoMeta.findUnique({
+  const seoMeta = await prisma.seometa.findUnique({
     where: {
       id: params.id,
     },

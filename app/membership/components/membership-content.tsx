@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react"
+import Link from "next/link"
 import PageHeader from "@/components/ui/page-header"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -270,50 +271,60 @@ export default function MembershipContent({ initialData }: { initialData: Member
                         <p className="text-2xl font-bold text-slate-900">{category.duration}</p>
                       </div>
                     </div>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button className="w-full">Apply Now</Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                          <DialogTitle>{category.title} Membership Application</DialogTitle>
-                          <DialogDescription>
-                            Follow these steps to complete your membership application
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-6">
-                          <div className="space-y-4">
-                            {category.applicationSteps?.map((step, index) => (
-                              <div key={index} className="flex items-start gap-3">
-                                <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                  {index + 1}
+                    <div className="space-y-4">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" className="w-full">
+                            View Application Steps
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>{category.title} Membership Application</DialogTitle>
+                            <DialogDescription>
+                              Follow these steps to complete your membership application
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-6">
+                            <div className="space-y-4">
+                              {category.applicationSteps?.map((step, index) => (
+                                <div key={index} className="flex items-start gap-3">
+                                  <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    {index + 1}
+                                  </div>
+                                  <p className="text-slate-600">{step}</p>
                                 </div>
-                                <p className="text-slate-600">{step}</p>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="border-t pt-4">
-                            <h4 className="font-semibold mb-2">Required Documents:</h4>
-                            <div className="space-y-2">
-                              {category.documents?.map((doc, index) => (
-                                <Button
-                                  key={index}
-                                  variant="outline"
-                                  className="w-full justify-between"
-                                  onClick={() => window.open(doc.url, '_blank')}
-                                >
-                                  <span className="flex items-center">
-                                    <FileText className="h-4 w-4 mr-2" />
-                                    {doc.name}
-                                  </span>
-                                  <Download className="h-4 w-4" />
-                                </Button>
                               ))}
                             </div>
+                            <div className="border-t pt-4">
+                              <h4 className="font-semibold mb-2">Required Documents:</h4>
+                              <div className="space-y-2">
+                                {category.documents?.map((doc, index) => (
+                                  <Button
+                                    key={index}
+                                    variant="outline"
+                                    className="w-full justify-between"
+                                    onClick={() => window.open(doc.url, '_blank')}
+                                  >
+                                    <span className="flex items-center">
+                                      <FileText className="h-4 w-4 mr-2" />
+                                      {doc.name}
+                                    </span>
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                ))}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                        </DialogContent>
+                      </Dialog>
+                      
+                      <Link href="/membership/apply">
+                        <Button className="w-full">
+                          Start Application
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </Card>
               </TabsContent>

@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { ImageUpload } from '@/components/ui/image-upload'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import type { Event } from '@/types'
 import { Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
@@ -66,40 +66,69 @@ export function EventForm({ initialData }: EventFormProps) {
   async function onSubmit(data: EventFormValues) {
     try {
       setIsLoading(true)
+      toast.success("Saving...")
+
+      // Convert date/time fields to ISO strings if present
+      const payload = {
+        ...data,
+        date: data.date ? new Date(data.date).toISOString() : null,
+        startTime: data.startTime ? new Date(data.startTime).toISOString() : null,
+        endTime: data.endTime ? new Date(data.endTime).toISOString() : null,
+      }
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      let response: Response
 
       if (initialData) {
-        // Update existing event
-        await fetch(`/api/admin/events/${initialData.id}`, {
+        response = await fetch(`/api/admin/events/${initialData.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify(payload),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to update event')
+        }
       } else {
-        // Create new event
-        await fetch('/api/admin/events', {
+        response = await fetch('/api/admin/events', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify(payload),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to create event')
+        }
       }
 
+      clearTimeout(timeoutId)
+
+      await Promise.all([
+        fetch('/api/revalidate?path=/admin/events'),
+        fetch('/api/revalidate?path=/events')
+      ])
+      
+      toast.success(`Event ${initialData ? 'updated' : 'created'} successfully.`)
       router.refresh()
       router.push('/admin/events')
-      toast({
-        title: 'Success',
-        description: `Event ${initialData ? 'updated' : 'created'} successfully.`,
-      })
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        toast.error(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -116,8 +145,8 @@ export function EventForm({ initialData }: EventFormProps) {
               <FormLabel>Event Image</FormLabel>
               <FormControl>
                 <ImageUpload
-                  value={field.value || ''}
-                  onChange={field.onChange}
+                  value={field.value ? [field.value] : []}
+                  onChange={(url) => field.onChange(url)}
                   onRemove={() => field.onChange('')}
                 />
               </FormControl>

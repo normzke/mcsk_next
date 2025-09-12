@@ -1,3 +1,4 @@
+import * as React from "react";
 import * as ReactHookForm from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -41,6 +42,7 @@ interface SlideFormProps {
 
 export function SlideForm({ initialData }: SlideFormProps) {
   const router = useRouter();
+  const [isLoading, setIsLoading] = React.useState(false);
   const form = useForm<SlideFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -59,29 +61,64 @@ export function SlideForm({ initialData }: SlideFormProps) {
 
   async function onSubmit(values: SlideFormValues) {
     try {
+      setIsLoading(true)
+      toast.success("Saving...")
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      let response: Response
+
       if (initialData) {
-        await fetch(`/api/admin/hero-slides/${initialData.id}`, {
+        response = await fetch(`/api/admin/hero-slides/${initialData.id}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(values),
-        });
-        toast.success("Slide updated successfully");
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to update slide')
+        }
       } else {
-        await fetch("/api/admin/hero-slides", {
+        response = await fetch("/api/admin/hero-slides", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(values),
-        });
-        toast.success("Slide created successfully");
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to create slide')
+        }
       }
-      router.push("/admin/hero-slides");
-      router.refresh();
+
+      clearTimeout(timeoutId)
+
+      await Promise.all([
+        fetch('/api/revalidate?path=/admin/hero-slides'),
+        fetch('/api/revalidate?path=/')
+      ])
+      
+      toast.success(`Slide ${initialData ? 'updated' : 'created'} successfully.`)
+      router.push("/admin/hero-slides")
+      router.refresh()
     } catch (error) {
-      toast.error("Something went wrong");
+      console.error(error)
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        toast.error(errorMessage)
+      }
+    } finally {
+      setIsLoading(false)
     }
   }
 

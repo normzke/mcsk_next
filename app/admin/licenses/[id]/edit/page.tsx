@@ -51,7 +51,7 @@ export default async function EditLicensePage({ params }: EditLicensePageProps) 
         name: 'asc',
       },
     }),
-    prisma.licenseType.findMany({
+    prisma.licensetype.findMany({
       where: {
         deletedAt: null,
         isActive: true,

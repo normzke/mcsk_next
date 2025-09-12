@@ -32,7 +32,7 @@ export function UserNav() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">Administrator</p>
             <p className="text-xs leading-none text-muted-foreground">
-              admin@mcsk.or.ke
+              admin@mcsk.org
             </p>
           </div>
         </DropdownMenuLabel>

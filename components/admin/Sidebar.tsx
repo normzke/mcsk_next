@@ -21,6 +21,9 @@ import {
   Bell,
   Globe,
   Share2,
+  CreditCard,
+  Package,
+  MessageCircle,
 } from 'lucide-react'
 
 const navigation = [
@@ -110,8 +113,23 @@ const navigation = [
     icon: MessageSquare
   },
   {
-    name: 'Settings',
-    href: '/admin/settings',
+    name: 'Social Media',
+    href: '/admin/social-media',
+    icon: MessageCircle
+  },
+  {
+    name: 'Payment Packages',
+    href: '/admin/payment-packages',
+    icon: Package
+  },
+  {
+    name: 'M-Pesa Credentials',
+    href: '/admin/mpesa-credentials',
+    icon: CreditCard
+  },
+  {
+    name: 'Site Settings',
+    href: '/admin/site-settings',
     icon: Settings
   },
 ]
@@ -131,6 +149,7 @@ export default function AdminSidebar() {
               <li key={item.name}>
                 <Link
                   href={item.href}
+                  prefetch={true}
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all',
                     isActive 

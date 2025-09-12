@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import type { Service } from '@/types'
 import { Loader2 } from 'lucide-react'
 import { Editor } from '@/components/ui/editor'
@@ -55,40 +55,65 @@ export function ServiceForm({ initialData }: ServiceFormProps) {
   async function onSubmit(data: ServiceFormValues) {
     try {
       setIsLoading(true)
+      toast.success("Saving...")
+
+      // Create AbortController for timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+
+      let response: Response
 
       if (initialData) {
         // Update existing service
-        await fetch(`/api/admin/services/${initialData.id}`, {
+        response = await fetch(`/api/admin/services/${initialData.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to update service')
+        }
       } else {
         // Create new service
-        await fetch('/api/admin/services', {
+        response = await fetch('/api/admin/services', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to create service')
+        }
       }
 
+      clearTimeout(timeoutId)
+
+      // Invalidate cache for services page and admin pages
+      await Promise.all([
+        fetch('/api/revalidate?path=/admin/services'),
+        fetch('/api/revalidate?path=/services')
+      ])
+      
+      toast.success(`Service ${initialData ? 'updated' : 'created'} successfully.`)
       router.refresh()
       router.push('/admin/services')
-      toast({
-        title: 'Success',
-        description: `Service ${initialData ? 'updated' : 'created'} successfully.`,
-      })
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        toast.error(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }

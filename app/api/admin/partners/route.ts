@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
+import { randomUUID } from 'crypto'
 
 export async function GET(req: Request) {
   try {
@@ -60,11 +61,14 @@ export async function POST(req: Request) {
 
     const partner = await prisma.partner.create({
       data: {
+        id: randomUUID(),
         name: body.name,
+        description: body.description,
         logo: body.logo,
         website: body.website,
         order: body.order || 0,
         isActive: body.isActive ?? true,
+        updatedAt: new Date(),
       },
     })
 

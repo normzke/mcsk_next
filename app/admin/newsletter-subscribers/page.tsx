@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/custom-auth";
 import { redirect } from "next/navigation";
 
 import { DataTable } from "@/components/ui/data-table";
@@ -15,10 +15,10 @@ export const metadata: Metadata = {
 };
 
 export default async function NewsletterSubscribersPage() {
-  const session = await auth();
+  const session = await getSession();
 
   if (!session || session.user.role !== "admin") {
-    redirect("/auth/login");
+    redirect("/admin-login");
   }
 
   let subscribers: NewsletterSubscriber[] = [];

@@ -29,6 +29,7 @@ export default async function PartnersPage() {
       website: partner.website || '',
       logo: partner.logo || '',
       order: typeof partner.order === 'number' ? partner.order : 0,
+      isActive: typeof partner.isActive === 'boolean' ? partner.isActive : true,
       createdAt: partner.createdAt ? partner.createdAt.toISOString() : '',
       updatedAt: partner.updatedAt ? partner.updatedAt.toISOString() : '',
       deletedAt: partner.deletedAt ? partner.deletedAt.toISOString() : null,

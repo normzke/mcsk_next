@@ -21,7 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { ImageUpload } from "@/components/image-upload"
+import { ImageUpload } from "@/components/ui/image-upload"
 import {
   Select,
   SelectContent,

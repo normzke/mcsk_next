@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
@@ -67,10 +67,29 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('[GALLERY_DELETE] Starting deletion for ID:', params.id)
+    
     const session = await auth()
     if (!session || session.user.role !== 'admin') {
+      console.log('[GALLERY_DELETE] Unauthorized access attempt')
       return new NextResponse('Unauthorized', { status: 401 })
     }
+
+    console.log('[GALLERY_DELETE] User authorized, proceeding with deletion')
+
+    // Check if the gallery item exists first
+    const existingGallery = await prisma.gallery.findUnique({
+      where: {
+        id: params.id,
+      },
+    })
+
+    if (!existingGallery) {
+      console.log('[GALLERY_DELETE] Gallery item not found:', params.id)
+      return new NextResponse('Gallery item not found', { status: 404 })
+    }
+
+    console.log('[GALLERY_DELETE] Gallery item found, performing soft delete')
 
     const gallery = await prisma.gallery.update({
       where: {
@@ -81,9 +100,10 @@ export async function DELETE(
       },
     })
 
+    console.log('[GALLERY_DELETE] Soft delete successful:', gallery.id)
     return NextResponse.json(gallery)
   } catch (error) {
-    console.error('[GALLERY_DELETE]', error)
+    console.error('[GALLERY_DELETE] Error:', error)
     return new NextResponse('Internal error', { status: 500 })
   }
 } 

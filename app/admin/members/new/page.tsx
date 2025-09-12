@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function NewMemberPage() {
   // Fetch membership categories and map to ensure they match the MembershipCategory interface
-  const categoriesData = await prisma.membershipCategory.findMany()
+  const categoriesData = await prisma.membershipcategory.findMany()
   
   // Map the Prisma result to match the MembershipCategory interface
   const categories = categoriesData.map(category => ({

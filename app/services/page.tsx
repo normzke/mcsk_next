@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Services | Music Copyright Society of Kenya",
     description: "Explore MCSK's comprehensive services for music creators, including licensing, royalty collection, and rights management.",
-    url: "https://mcsk.or.ke/services",
+    url: "https://mcsk.org/services",
     siteName: "Music Copyright Society of Kenya",
     locale: "en_US",
     type: "website",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     description: "Explore MCSK's comprehensive services for music creators, including licensing, royalty collection, and rights management.",
   },
   alternates: {
-    canonical: "https://mcsk.or.ke/services",
+    canonical: "https://mcsk.org/services",
   },
 }
 
@@ -27,7 +27,7 @@ async function getServicesData() {
   try {
     // Use relative URL for API route within the same Next.js app
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/services`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 60 }, // Cache for 1 minute for faster updates
     })
     
     if (!res.ok) {
@@ -139,7 +139,7 @@ async function getServicesData() {
           {
             id: "1",
             question: "How do I apply for a music license?",
-            answer: "You can apply for a music license through our website, by visiting our offices, or by contacting our licensing department. The process involves completing an application form and paying the applicable fee."
+                          answer: "You can apply for a music license through our secure online portal at online.mcsk.org, by visiting our offices, or by contacting our licensing department. The online portal provides the fastest and most convenient way to complete your application."
           },
           {
             id: "2",

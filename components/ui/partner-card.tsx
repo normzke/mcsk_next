@@ -83,6 +83,7 @@ const PartnerCard: React.FC<PartnerCardProps> = ({
               width={160}
               height={80}
               className="object-contain max-h-24 transition-all duration-500 group-hover:scale-110 drop-shadow-sm group-hover:drop-shadow-md"
+              style={{ width: "auto", height: "auto" }}
             />
           </div>
           

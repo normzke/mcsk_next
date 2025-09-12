@@ -78,9 +78,11 @@ export async function POST(req: Request) {
     // Prisma will auto-generate id and timestamps
     const subscriber = await prisma.newsletterSubscriber.create({
       data: {
-        email,
-        isActive: true,
-      } as any,
+        id: crypto.randomUUID(),
+        email: body.email,
+        isActive: body.isActive ?? true,
+        updatedAt: new Date(),
+      },
     });
 
     return NextResponse.json(subscriber);

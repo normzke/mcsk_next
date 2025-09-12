@@ -30,7 +30,7 @@ import type { News } from '@/types'
 import { Editor } from "@/components/ui/editor"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { slugify } from "@/lib/utils"
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 import { useRouter } from 'next/navigation'
 
@@ -75,31 +75,45 @@ export function NewsForm({ initialData, onSubmit }: NewsFormProps) {
         const url = initialData ? `/api/admin/news/${initialData.id}` : '/api/admin/news'
         const method = initialData ? 'PATCH' : 'POST'
         
+        // Show optimistic update
+        toast.success(`Saving ${initialData ? 'changes' : 'news'}...`)
+        
+        // Add timeout to prevent hanging
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+        
         const response = await fetch(url, {
           method,
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        clearTimeout(timeoutId)
 
         if (!response.ok) {
-          throw new Error(`Failed to ${initialData ? 'update' : 'create'} news`)
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || `Failed to ${initialData ? 'update' : 'create'} news`)
         }
 
-        toast({
-          title: 'Success',
-          description: `News ${initialData ? 'updated' : 'created'} successfully.`,
-        })
+        // Invalidate cache for news page and admin pages
+        await Promise.all([
+          fetch('/api/revalidate?path=/news'),
+          fetch('/api/revalidate?path=/admin/news')
+        ])
+        
+        toast.success(`News ${initialData ? 'updated' : 'created'} successfully.`)
         router.push('/admin/news')
       }
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        toast.error(error instanceof Error ? error.message : 'Something went wrong. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -162,8 +176,8 @@ export function NewsForm({ initialData, onSubmit }: NewsFormProps) {
               <FormLabel>Image</FormLabel>
               <FormControl>
                 <ImageUpload
-                  value={field.value}
-                  onChange={field.onChange}
+                  value={field.value ? [field.value] : []}
+                  onChange={(url) => field.onChange(url)}
                   onRemove={() => field.onChange(null)}
                 />
               </FormControl>

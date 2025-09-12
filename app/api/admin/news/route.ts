@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
+import { randomUUID } from 'crypto'
 
 export async function GET(req: Request) {
   try {
@@ -34,7 +35,7 @@ export async function GET(req: Request) {
       prisma.news.count({ where }),
     ])
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       data: news,
       meta: {
         total,
@@ -43,6 +44,10 @@ export async function GET(req: Request) {
         lastPage: Math.ceil(total / limit),
       },
     })
+    
+    // Add caching headers for better performance
+    response.headers.set('Cache-Control', 'private, max-age=30')
+    return response
   } catch (error) {
     console.error('[NEWS_GET]', error)
     return new NextResponse('Internal error', { status: 500 })
@@ -60,11 +65,14 @@ export async function POST(req: Request) {
 
     const news = await prisma.news.create({
       data: {
+        id: randomUUID(),
         title: body.title,
         content: body.content,
         image: body.image,
         slug: body.slug,
         isActive: body.isActive ?? true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     })
 

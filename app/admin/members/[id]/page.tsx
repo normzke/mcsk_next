@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 async function getMembershipCategories(): Promise<MembershipCategory[]> {
   try {
-    const categories = await prisma.membershipCategory.findMany();
+    const categories = await prisma.membershipcategory.findMany();
     
     // Cast the features field to string[] to match the MembershipCategory type
     return categories.map(category => ({

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
@@ -15,9 +15,6 @@ export async function GET(
     const wave = await prisma.wave.findUnique({
       where: {
         id: params.id,
-      },
-      include: {
-        member: true,
       },
     })
 
@@ -53,17 +50,13 @@ export async function PATCH(
         artist: body.artist,
         album: body.album,
         genre: body.genre,
-        releaseDate: new Date(body.releaseDate),
         duration: body.duration,
-        coverArt: body.coverArt,
-        audioFile: body.audioFile,
+        releaseDate: body.releaseDate,
+        playCount: body.playCount,
         status: body.status,
         isFeatured: body.isFeatured,
-        memberId: body.memberId,
-        isrcCode: body.isrcCode,
-        lyrics: body.lyrics,
-        description: body.description,
-        copyrightInfo: body.copyrightInfo,
+        audioUrl: body.audioUrl,
+        coverArt: body.coverArt,
       },
     })
 
@@ -79,10 +72,29 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('[WAVE_DELETE] Starting deletion for ID:', params.id)
+    
     const session = await auth()
     if (!session || session.user.role !== 'admin') {
+      console.log('[WAVE_DELETE] Unauthorized access attempt')
       return new NextResponse('Unauthorized', { status: 401 })
     }
+
+    console.log('[WAVE_DELETE] User authorized, proceeding with deletion')
+
+    // Check if the wave exists first
+    const existingWave = await prisma.wave.findUnique({
+      where: {
+        id: params.id,
+      },
+    })
+
+    if (!existingWave) {
+      console.log('[WAVE_DELETE] Wave not found:', params.id)
+      return new NextResponse('Wave not found', { status: 404 })
+    }
+
+    console.log('[WAVE_DELETE] Wave found, performing soft delete')
 
     const wave = await prisma.wave.update({
       where: {
@@ -93,9 +105,10 @@ export async function DELETE(
       },
     })
 
+    console.log('[WAVE_DELETE] Soft delete successful:', wave.id)
     return NextResponse.json(wave)
   } catch (error) {
-    console.error('[WAVE_DELETE]', error)
+    console.error('[WAVE_DELETE] Error:', error)
     return new NextResponse('Internal error', { status: 500 })
   }
 } 

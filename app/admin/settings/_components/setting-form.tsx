@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import type { Setting } from '@/types'
 import { Loader2 } from 'lucide-react'
 
@@ -78,40 +78,61 @@ export function SettingForm({ initialData }: SettingFormProps) {
   async function onSubmit(data: SettingFormValues) {
     try {
       setIsLoading(true)
+      toast.success("Saving...")
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      let response: Response
 
       if (initialData) {
-        // Update existing setting
-        await fetch(`/api/admin/settings/${initialData.id}`, {
+        response = await fetch(`/api/admin/settings/${initialData.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to update setting')
+        }
       } else {
-        // Create new setting
-        await fetch('/api/admin/settings', {
+        response = await fetch('/api/admin/settings', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to create setting')
+        }
       }
 
+      clearTimeout(timeoutId)
+
+      await Promise.all([
+        fetch('/api/revalidate?path=/admin/settings'),
+        fetch('/api/revalidate?path=/')
+      ])
+      
+      toast.success(`Setting ${initialData ? 'updated' : 'created'} successfully.`)
       router.refresh()
       router.push('/admin/settings')
-      toast({
-        title: 'Success',
-        description: `Setting ${initialData ? 'updated' : 'created'} successfully.`,
-      })
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        toast.error(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }

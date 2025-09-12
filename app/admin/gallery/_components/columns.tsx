@@ -41,6 +41,7 @@ export const columns: ColumnDef<Gallery>[] = [
               alt={item.title}
               fill
               className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
         )
@@ -95,22 +96,72 @@ export const columns: ColumnDef<Gallery>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => (
-      <DataTableRowActions
-        row={row}
-        actions={[
-          {
-            label: 'Edit',
-            href: `/admin/gallery/${row.original.id}/edit`,
-          },
-          {
-            label: 'Delete',
-            onClick: () => {
-              // Handle delete
+    cell: ({ row }) => {
+      const gallery = row.original
+      
+      const deleteGallery = async () => {
+        try {
+          // Add timeout to prevent hanging - increased to 20 seconds
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 second timeout
+          
+          console.log('Attempting to delete gallery item:', gallery.id)
+          
+          const response = await fetch(`/api/admin/gallery/${gallery.id}`, {
+            method: 'DELETE',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
             },
-          },
-        ]}
-      />
-    ),
+          })
+          
+          clearTimeout(timeoutId)
+          
+          console.log('Delete response status:', response.status)
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            console.error('Delete failed with status:', response.status, 'Error:', errorText)
+            throw new Error(`Failed to delete gallery item: ${response.status} ${errorText}`)
+          }
+          
+          const result = await response.json()
+          console.log('Delete successful:', result)
+          
+          // Invalidate cache after successful deletion
+          await Promise.all([
+            fetch('/api/revalidate?path=/admin/gallery'),
+            fetch('/api/revalidate?path=/gallery')
+          ])
+          
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Error deleting gallery item:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Delete request timed out. Please try again.')
+          }
+          return Promise.reject(error)
+        }
+      }
+      
+      return (
+        <DataTableRowActions
+          row={row}
+          actions={[
+            {
+              label: 'Edit',
+              href: `/admin/gallery/${gallery.id}/edit`,
+            },
+            {
+              label: 'View',
+              href: `/admin/gallery/${gallery.id}`,
+            },
+          ]}
+          onDelete={deleteGallery}
+          itemName={gallery.title}
+          itemType="Gallery Item"
+        />
+      )
+    },
   },
 ] 

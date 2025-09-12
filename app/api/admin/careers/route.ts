@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(req: Request) {
@@ -73,6 +73,7 @@ export async function POST(req: Request) {
 
     const career = await prisma.career.create({
       data: {
+        id: crypto.randomUUID(),
         title: body.title,
         department: body.department,
         location: body.location,
@@ -84,6 +85,7 @@ export async function POST(req: Request) {
         benefits: benefits,
         deadline: body.deadline ? new Date(body.deadline) : null,
         isActive: body.isActive !== undefined ? body.isActive : true,
+        updatedAt: new Date(),
       },
     })
 

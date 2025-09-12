@@ -8,8 +8,8 @@ export function SiteStructuredData() {
       {/* Structured Data for Organization */}
       <OrganizationJsonLd 
         name="Music Copyright Society of Kenya"
-        url="https://mcsk.or.ke"
-        logo="https://mcsk.or.ke/images/logo.png"
+        url="https://mcsk.org"
+        logo="https://mcsk.org/images/logo.png"
         sameAs={[
           "https://www.facebook.com/mcskkenya",
           "https://twitter.com/mcsk_kenya",
@@ -26,7 +26,7 @@ export function SiteStructuredData() {
           {
             telephone: "+254 20 2375439/40",
             contactType: "customer service",
-            email: "info@mcsk.or.ke",
+            email: "info@mcsk.org",
             areaServed: "Kenya"
           }
         ]}
@@ -34,12 +34,12 @@ export function SiteStructuredData() {
       
       {/* Structured Data for Website */}
       <WebsiteJsonLd
-        url="https://mcsk.or.ke"
+        url="https://mcsk.org"
         name="Music Copyright Society of Kenya"
         description="The Music Copyright Society of Kenya (MCSK) is a collective management organization that protects the rights of music creators and publishers in Kenya."
         publisher={{
           name: "Music Copyright Society of Kenya",
-          logo: "https://mcsk.or.ke/images/logo.png"
+          logo: "https://mcsk.org/images/logo.png"
         }}
       />
     </>

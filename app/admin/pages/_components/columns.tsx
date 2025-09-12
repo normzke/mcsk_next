@@ -55,26 +55,72 @@ export const columns: ColumnDef<Page>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => (
-      <DataTableRowActions
-        row={row}
-        actions={[
-          {
-            label: 'Edit',
-            href: `/admin/pages/${row.original.id}/edit`,
-          },
-          {
-            label: 'View',
-            href: `/admin/pages/${row.original.id}`,
-          },
-          {
-            label: 'Delete',
-            onClick: () => {
-              // Handle delete
+    cell: ({ row }) => {
+      const page = row.original
+      
+      const deletePage = async () => {
+        try {
+          // Add timeout to prevent hanging - increased to 20 seconds
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 second timeout
+          
+          console.log('Attempting to delete page:', page.id)
+          
+          const response = await fetch(`/api/admin/pages/${page.id}`, {
+            method: 'DELETE',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
             },
-          },
-        ]}
-      />
-    ),
+          })
+          
+          clearTimeout(timeoutId)
+          
+          console.log('Delete response status:', response.status)
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            console.error('Delete failed with status:', response.status, 'Error:', errorText)
+            throw new Error(`Failed to delete page: ${response.status} ${errorText}`)
+          }
+          
+          const result = await response.json()
+          console.log('Delete successful:', result)
+          
+          // Invalidate cache after successful deletion
+          await Promise.all([
+            fetch('/api/revalidate?path=/admin/pages'),
+            fetch('/api/revalidate?path=/pages')
+          ])
+          
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Error deleting page:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Delete request timed out. Please try again.')
+          }
+          return Promise.reject(error)
+        }
+      }
+      
+      return (
+        <DataTableRowActions
+          row={row}
+          actions={[
+            {
+              label: 'Edit',
+              href: `/admin/pages/${page.id}/edit`,
+            },
+            {
+              label: 'View',
+              href: `/admin/pages/${page.id}`,
+            },
+          ]}
+          onDelete={deletePage}
+          itemName={page.title}
+          itemType="Page"
+        />
+      )
+    },
   },
 ] 

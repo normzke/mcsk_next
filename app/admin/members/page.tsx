@@ -3,9 +3,12 @@ import { columns } from "./columns"
 import { MembersDataTable } from "./data-table"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Plus } from "lucide-react"
+import { Plus, Upload, Download, CheckCircle } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import type { Member } from '@/types'
+import { getMCSKNumberStats } from "@/lib/mcsk-number"
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: "Members - MCSK Admin",
@@ -79,6 +82,7 @@ async function getMembers() {
 
 export default async function MembersPage() {
   const members = await getMembers()
+  const stats = await getMCSKNumberStats()
 
   return (
     <>
@@ -90,6 +94,18 @@ export default async function MembersPage() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
+          <Link href="/admin/members/import">
+            <Button variant="outline">
+              <Upload className="mr-2 h-4 w-4" />
+              Import Excel
+            </Button>
+          </Link>
+          <Link href="/admin/members/export">
+            <Button variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+          </Link>
           <Link href="/admin/members/new">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -98,6 +114,49 @@ export default async function MembersPage() {
           </Link>
         </div>
       </div>
+
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg border">
+          <div className="flex items-center">
+            <CheckCircle className="h-8 w-8 text-green-600 mr-3" />
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Members</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalMembers}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border">
+          <div className="flex items-center">
+            <CheckCircle className="h-8 w-8 text-blue-600 mr-3" />
+            <div>
+              <p className="text-sm font-medium text-gray-600">This Year</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.currentYearMembers}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border">
+          <div className="flex items-center">
+            <CheckCircle className="h-8 w-8 text-purple-600 mr-3" />
+            <div>
+              <p className="text-sm font-medium text-gray-600">Current Year</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.currentYear}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border">
+          <div className="flex items-center">
+            <CheckCircle className="h-8 w-8 text-orange-600 mr-3" />
+            <div>
+              <p className="text-sm font-medium text-gray-600">Pending Approval</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {members.filter(m => m.status === 'pending').length}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-4">
         <MembersDataTable data={members} columns={columns} />
       </div>

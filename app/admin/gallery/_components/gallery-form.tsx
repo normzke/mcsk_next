@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import type { Gallery } from '@/types'
 import { Loader2 } from 'lucide-react'
 import { ImageUpload } from '@/components/ui/image-upload'
@@ -65,39 +65,63 @@ export function GalleryForm({ initialData }: GalleryFormProps) {
     try {
       setIsLoading(true)
 
+      // Show optimistic update
+      toast.success(`Saving ${initialData ? 'changes' : 'gallery item'}...`)
+
+      // Add timeout to prevent hanging
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+
       if (initialData) {
         // Update existing gallery item
-        await fetch(`/api/admin/gallery/${initialData.id}`, {
+        const response = await fetch(`/api/admin/gallery/${initialData.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to update gallery item')
+        }
       } else {
         // Create new gallery item
-        await fetch('/api/admin/gallery', {
+        const response = await fetch('/api/admin/gallery', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to create gallery item')
+        }
       }
 
+      clearTimeout(timeoutId)
+
+      // Invalidate cache for gallery page and admin pages
+      await Promise.all([
+        fetch('/api/revalidate?path=/gallery'),
+        fetch('/api/revalidate?path=/admin/gallery')
+      ])
+      
+      toast.success(`Gallery item ${initialData ? 'updated' : 'created'} successfully.`)
       router.refresh()
       router.push('/admin/gallery')
-      toast({
-        title: 'Success',
-        description: `Gallery item ${initialData ? 'updated' : 'created'} successfully.`,
-      })
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        toast.error(error instanceof Error ? error.message : 'Something went wrong. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -181,8 +205,8 @@ export function GalleryForm({ initialData }: GalleryFormProps) {
                   <FormLabel>Media File</FormLabel>
                   <FormControl>
                     <ImageUpload
-                      value={field.value}
-                      onChange={field.onChange}
+                      value={field.value ? [field.value] : []}
+                      onChange={(url) => field.onChange(url)}
                       onRemove={() => field.onChange('')}
                     />
                   </FormControl>

@@ -7,6 +7,8 @@ import { RecentActivity } from '@/components/admin/dashboard/recent-activity'
 import { Users, Music, Award, Calendar, Download, FileText, MessageSquare } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Dashboard - MCSK Admin',
   description: 'Admin dashboard for the Music Copyright Society of Kenya',

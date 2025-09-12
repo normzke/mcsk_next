@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
@@ -12,7 +12,7 @@ export async function GET(
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    const managementMember = await prisma.managementMember.findUnique({
+    const managementMember = await prisma.managementmember.findUnique({
       where: {
         id: params.managementMemberId,
       },
@@ -39,7 +39,7 @@ export async function GET(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { managementMemberId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await auth()
@@ -57,7 +57,13 @@ export async function PATCH(
     // Only include fields in the update if they are provided in the request
     const updateData: any = {};
     
-    if (body.name !== undefined) updateData.name = body.name;
+    if (body.name !== undefined) {
+      updateData.name = body.name;
+      // Split name into firstName and lastName
+      const nameParts = body.name.split(' ')
+      updateData.firstName = nameParts[0] || ''
+      updateData.lastName = nameParts.slice(1).join(' ') || ''
+    }
     if (body.firstName !== undefined) updateData.firstName = body.firstName;
     if (body.lastName !== undefined) updateData.lastName = body.lastName;
     if (body.email !== undefined) updateData.email = body.email;
@@ -97,9 +103,9 @@ export async function PATCH(
         : 'active';
     }
 
-    const managementMember = await prisma.managementMember.update({
+    const managementMember = await prisma.managementmember.update({
       where: {
-        id: params.managementMemberId,
+        id: params.id,
       },
       data: updateData,
     })
@@ -113,7 +119,7 @@ export async function PATCH(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { managementMemberId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await auth()
@@ -121,9 +127,21 @@ export async function DELETE(
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    const managementMember = await prisma.managementMember.update({
+    // First check if the management member exists
+    const existingManagementMember = await prisma.managementmember.findFirst({
       where: {
-        id: params.managementMemberId,
+        id: params.id,
+        deletedAt: null,
+      },
+    })
+
+    if (!existingManagementMember) {
+      return new NextResponse('Management member not found', { status: 404 })
+    }
+
+    const managementMember = await prisma.managementmember.update({
+      where: {
+        id: params.id,
       },
       data: {
         deletedAt: new Date(),

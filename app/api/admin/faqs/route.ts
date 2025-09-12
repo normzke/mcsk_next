@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(req: Request) {
@@ -60,10 +60,12 @@ export async function POST(req: Request) {
 
     const faq = await prisma.faq.create({
       data: {
+        id: crypto.randomUUID(),
         question: body.question,
         answer: body.answer,
         order: body.order || 0,
         isActive: body.isActive ?? true,
+        updatedAt: new Date(),
       },
     })
 

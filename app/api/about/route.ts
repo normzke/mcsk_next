@@ -64,7 +64,7 @@ export async function GET() {
       description: "Meet the dedicated team leading MCSK into the future of music rights management.",
       members: [
         {
-          name: "Dr. Ezekiel Mutua",
+          name: "Richard Sereti",
           position: "Chief Executive Officer",
           image: "/images/team/ceo.jpg",
           bio: "Leading MCSK's transformation into a modern rights management organization."

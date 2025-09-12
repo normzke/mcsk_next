@@ -1,12 +1,12 @@
 import { Metadata } from "next"
-import { auth } from "@/auth"
+import { getSession } from "@/lib/custom-auth"
 import { redirect } from "next/navigation"
 
 import { DataTable } from "@/components/ui/data-table"
 import { Heading } from "@/components/ui/heading"
 import { Separator } from "@/components/ui/separator"
 import { columns } from "./_components/columns"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import type { HeroSlide } from '@/types'
 
 export const metadata: Metadata = {
@@ -15,10 +15,10 @@ export const metadata: Metadata = {
 }
 
 export default async function HeroSlidesPage() {
-  const session = await auth()
+  const session = await getSession()
 
   if (!session || session.user.role !== "admin") {
-    redirect("/auth/login")
+    redirect("/admin-login")
   }
 
     let slides: HeroSlide[] = []

@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Music Copyright Society of Kenya | Protecting Music Rights",
     description: "MCSK is Kenya's premier collective management organization for musical works, protecting and promoting the rights of composers, authors, and publishers.",
-    url: "https://mcsk.or.ke",
+    url: "https://mcsk.org",
     siteName: "Music Copyright Society of Kenya",
     locale: "en_US",
     type: "website",
@@ -44,35 +44,34 @@ export const metadata: Metadata = {
     description: "MCSK is Kenya's premier collective management organization for musical works, protecting and promoting the rights of composers, authors, and publishers.",
   },
   alternates: {
-    canonical: "https://mcsk.or.ke",
+    canonical: "https://mcsk.org",
   },
 }
 
 async function getHomeData() {
   try {
-    // Use relative URL for API route within the same Next.js app
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/home`, {
-      next: { revalidate: 3600 } // Revalidate every hour
-    });
+    // Make all API calls in parallel for better performance
+    const [homeRes, partnersRes, socialFeedRes] = await Promise.all([
+      fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/home`, {
+        next: { revalidate: 60 } // Revalidate every minute
+      }),
+      fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/partners`, {
+        next: { revalidate: 60 } // Revalidate every minute
+      }),
+      fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/social-feed`, {
+        next: { revalidate: 60 } // Revalidate every minute
+      })
+    ]);
     
-    if (!res.ok) throw new Error('Failed to fetch home data');
-    const data = await res.json();
-    
-    // Fetch partners from the dedicated partners API endpoint
-    const partnersRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/partners`, {
-      next: { revalidate: 3600 } // Revalidate every hour
-    });
-    
+    if (!homeRes.ok) throw new Error('Failed to fetch home data');
     if (!partnersRes.ok) throw new Error('Failed to fetch partners data');
-    const partnersData = await partnersRes.json();
-    
-    // Fetch social media feed data
-    const socialFeedRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/social-feed`, {
-      next: { revalidate: 3600 } // Revalidate every hour
-    });
-    
     if (!socialFeedRes.ok) throw new Error('Failed to fetch social feed data');
-    const socialFeedData = await socialFeedRes.json();
+    
+    const [data, partnersData, socialFeedData] = await Promise.all([
+      homeRes.json(),
+      partnersRes.json(),
+      socialFeedRes.json()
+    ]);
     
     // Combine all data
     return { 
@@ -281,11 +280,34 @@ export default async function HomePage() {
       </div>
       
       {/* About Section */}
-      <section id="about" className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
+      <section id="about" className="py-16 bg-gray-50 relative overflow-hidden">
+        {/* Musical background pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm0 0c0 11.046 8.954 20 20 20s20-8.954 20-20-8.954-20-20-20-20 8.954-20 20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundSize: '60px 60px'
+          }}></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-wrap items-center">
             <div className="w-full md:w-1/2 mb-8 md:mb-0">
-              <div className="rounded-lg shadow-xl h-[300px] bg-cover bg-center" style={{ backgroundImage: "url('/images/MCSK Logo.png')" }}></div>
+              <div className="rounded-lg shadow-xl h-[400px] bg-cover bg-center relative overflow-hidden" style={{ 
+                backgroundImage: "url('/images/music-studio-bg.jpg')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}>
+                {/* Studio lighting overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-500/30 via-purple-600/20 to-blue-500/30"></div>
+                {/* Musical notes overlay */}
+                <div className="absolute top-4 right-4 text-white text-4xl drop-shadow-lg">♪</div>
+                <div className="absolute bottom-4 left-4 text-white text-3xl drop-shadow-lg">♫</div>
+                <div className="absolute top-1/2 left-1/4 text-white text-2xl drop-shadow-lg">♩</div>
+                {/* Studio equipment indicator */}
+                <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                  Studio Equipment
+                </div>
+              </div>
             </div>
             <div className="w-full md:w-1/2 md:pl-12">
               <h2 className="text-3xl font-bold mb-6 text-[#1a1464]">About MCSK</h2>
@@ -384,6 +406,41 @@ export default async function HomePage() {
         </div>
       </section>
       
+      {/* Announcements Section */}
+      <section className="bg-white py-12">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold mb-8 text-center text-[#1a1464]">Announcements</h2>
+          {homeData.announcements && homeData.announcements.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {homeData.announcements.map((announcement: any) => {
+                  const isLong = announcement.content.length > 180;
+                  const preview = isLong ? announcement.content.slice(0, 180) + '...' : announcement.content;
+                  const dateObj = new Date(announcement.date);
+                  const formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                  return (
+                    <article key={announcement.id} className="bg-[#f5f7fa] rounded-lg shadow-md p-6 flex flex-col justify-between hover:shadow-lg transition-shadow" aria-label={`Announcement: ${announcement.title}`}> 
+                      <div>
+                        <h3 className="font-bold text-xl mb-2 text-[#1a1464]">{announcement.title}</h3>
+                        <p className="text-gray-700 mb-4 line-clamp-4">{preview} {isLong && <Link href="/announcements" className="text-[#1a1464] underline ml-1">Read more</Link>}</p>
+                      </div>
+                      <div className="flex items-center justify-between mt-4">
+                        <span className="text-xs text-gray-500">{formattedDate}</span>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+              <div className="flex justify-end mt-6">
+                <Link href="/announcements" className="text-[#1a1464] font-semibold hover:underline">See all announcements →</Link>
+              </div>
+            </>
+          ) : (
+            <div className="text-center text-gray-500 py-8">No announcements at this time.</div>
+          )}
+        </div>
+      </section>
+      
       <div className="container mx-auto px-4 py-12">
         {/* Key Services */}
         <section className="mb-12">
@@ -422,6 +479,7 @@ export default async function HomePage() {
                 src="/images/gallery/hero.jpg" 
                 alt="MCSK Gallery"
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 flex flex-col justify-end p-6 z-20">
@@ -436,6 +494,7 @@ export default async function HomePage() {
                 src="/images/events/hero.jpg" 
                 alt="MCSK Events"
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 flex flex-col justify-end p-6 z-20">
@@ -450,6 +509,7 @@ export default async function HomePage() {
                 src="/images/downloads/hero.jpg" 
                 alt="MCSK Downloads"
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 flex flex-col justify-end p-6 z-20">
@@ -464,6 +524,7 @@ export default async function HomePage() {
                 src="/images/careers/hero.jpg" 
                 alt="MCSK Careers"
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 flex flex-col justify-end p-6 z-20">
@@ -487,6 +548,7 @@ export default async function HomePage() {
                       src={news.image} 
                       alt={news.title}
                       fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
                       style={{ objectFit: 'cover' }}
                     />
                   </div>
@@ -567,6 +629,7 @@ export default async function HomePage() {
                       src="/images/testimonials/musician1.jpg" 
                       alt="Kenyan Musician"
                       fill
+                      sizes="(max-width: 768px) 100vw, 192px"
                       className="object-cover"
                     />
                   </div>

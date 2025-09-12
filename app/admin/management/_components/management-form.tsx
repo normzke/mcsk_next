@@ -23,12 +23,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import { useRouter } from "next/navigation"
 import { ManagementMember } from "@/types"
-import Image from "next/image"
 import { Calendar } from "@/components/ui/calendar"
+import { ImageUpload } from "@/components/ui/image-upload"
 import {
   Popover,
   PopoverContent,
@@ -37,9 +37,6 @@ import {
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
-
-const MAX_FILE_SIZE = 5000000 // 5MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
 
 const phoneRegex = /^(?:\+254|0)[17]\d{8}$/
 
@@ -51,7 +48,10 @@ const managementFormSchema = z.object({
   position: z.string().min(2, {
     message: "Position must be at least 2 characters.",
   }),
-  image: z.string().nullable().optional(),
+  role: z.string().default('manager'),
+  department: z.string().default('operations'),
+  status: z.string().default('active'),
+  profileImage: z.string().nullable().optional(),
   bio: z.string().nullable().optional(),
   order: z.number().int().default(0),
   isActive: z.boolean().default(true),
@@ -81,34 +81,34 @@ interface ManagementFormProps {
 export function ManagementForm({ member }: ManagementFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
-  const [previewImage, setPreviewImage] = React.useState<string | null>(
-    member?.image || null
-  )
+  const [previewImage, setPreviewImage] = React.useState<string | null>(null)
 
   const form = useForm<ManagementFormValues>({
     resolver: zodResolver(managementFormSchema) as any, // Temporary any cast due to type issues with zodResolver
-    defaultValues: member
-      ? {
-          ...member,
-          // Ensure all optional fields are properly set
-          image: member.image || undefined,
-          bio: member.bio || undefined,
-          email: member.email || undefined,
-          phone: member.phone || undefined,
-          linkedinUrl: member.linkedinUrl || undefined,
-          twitterUrl: member.twitterUrl || undefined,
-          // Ensure dates are properly handled
-          createdAt: member.createdAt ? new Date(member.createdAt) : undefined,
-          updatedAt: member.updatedAt ? new Date(member.updatedAt) : undefined,
-          deletedAt: member.deletedAt ? new Date(member.deletedAt) : undefined,
-        }
-      : {
-          name: "",
-          position: "",
-          order: 0,
-          isActive: true,
-          // All other fields are optional and will be undefined by default
-        },
+            defaultValues: member
+          ? {
+              ...member,
+              // Ensure all optional fields are properly set
+              bio: member.bio || undefined,
+              email: member.email || undefined,
+              phone: member.phone || undefined,
+              linkedinUrl: member.linkedinUrl || undefined,
+              twitterUrl: member.twitterUrl || undefined,
+              // Ensure dates are properly handled
+              createdAt: member.createdAt ? new Date(member.createdAt) : undefined,
+              updatedAt: member.updatedAt ? new Date(member.updatedAt) : undefined,
+              deletedAt: member.deletedAt ? new Date(member.deletedAt) : undefined,
+            }
+          : {
+              name: "",
+              position: "",
+              role: "manager",
+              department: "operations",
+              status: "active",
+              order: 0,
+              isActive: true,
+              // All other fields are optional and will be undefined by default
+            },
   })
 
   async function onSubmit(data: ManagementFormValues) {
@@ -116,8 +116,8 @@ export function ManagementForm({ member }: ManagementFormProps) {
 
     try {
       const url = member 
-        ? `/api/admin/management/${member.id}`
-        : '/api/admin/management';
+        ? `/api/admin/management-members/${member.id}`
+        : '/api/admin/management-members';
       
       const method = member ? 'PATCH' : 'POST';
       
@@ -125,13 +125,12 @@ export function ManagementForm({ member }: ManagementFormProps) {
       const formData = {
         ...data,
         // Convert empty strings to null for optional fields
+        profileImage: data.profileImage || null,
         email: data.email || null,
         phone: data.phone || null,
         bio: data.bio || null,
         linkedinUrl: data.linkedinUrl || null,
         twitterUrl: data.twitterUrl || null,
-        // Ensure image is either a string or null
-        image: data.image || null,
       };
 
       const response = await fetch(url, {
@@ -149,10 +148,13 @@ export function ManagementForm({ member }: ManagementFormProps) {
 
       const result = await response.json();
       
-      toast({
-        title: "Success",
-        description: `Management member ${member ? "updated" : "created"} successfully.`,
-      });
+      // Invalidate cache for leadership page and admin pages
+      await Promise.all([
+        fetch('/api/revalidate?path=/about/leadership'),
+        fetch('/api/revalidate?path=/admin/management')
+      ]);
+      
+      toast.success(`Management member ${member ? "updated" : "created"} successfully.`);
       
       // Redirect to management members list
       router.push('/admin/management');
@@ -160,11 +162,7 @@ export function ManagementForm({ member }: ManagementFormProps) {
       
     } catch (error) {
       console.error('Error saving management member:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -208,6 +206,75 @@ export function ManagementForm({ member }: ManagementFormProps) {
                     ref={field.ref}
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <FormField
+          control={form.control}
+          name="profileImage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Profile Photo</FormLabel>
+              <FormControl>
+                <ImageUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  onRemove={() => field.onChange(null)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="grid gap-8 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Role</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="director">Director</SelectItem>
+                    <SelectItem value="executive">Executive</SelectItem>
+                    <SelectItem value="board_member">Board Member</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="department"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Department</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a department" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="operations">Operations</SelectItem>
+                    <SelectItem value="finance">Finance</SelectItem>
+                    <SelectItem value="licensing">Licensing</SelectItem>
+                    <SelectItem value="distribution">Distribution</SelectItem>
+                    <SelectItem value="legal">Legal</SelectItem>
+                    <SelectItem value="it">IT</SelectItem>
+                    <SelectItem value="hr">HR</SelectItem>
+                    <SelectItem value="board">Board</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -258,52 +325,6 @@ export function ManagementForm({ member }: ManagementFormProps) {
             )}
           />
         </div>
-        <FormField
-          control={form.control}
-          name="image"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Profile Photo</FormLabel>
-              <FormControl>
-                <div className="space-y-4">
-                  <Input
-                    type="file"
-                    accept={ACCEPTED_IMAGE_TYPES.join(",")}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        const reader = new FileReader()
-                        reader.onloadend = () => {
-                          const imageUrl = reader.result as string
-                          field.onChange(imageUrl)
-                          setPreviewImage(imageUrl)
-                        }
-                        reader.readAsDataURL(file)
-                      }
-                    }}
-                    onBlur={field.onBlur}
-                    ref={field.ref}
-                  />
-                  {(previewImage || field.value) && (
-                    <div className="relative w-32 h-32 rounded-full overflow-hidden border">
-                      <Image
-                        src={previewImage || field.value || ''}
-                        alt="Profile preview"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  )}
-                </div>
-              </FormControl>
-              <FormDescription>
-                Upload a profile photo. Maximum size 5MB.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <div className="grid gap-8 md:grid-cols-2">
           <FormField
             control={form.control}

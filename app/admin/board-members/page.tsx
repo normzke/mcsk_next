@@ -33,10 +33,9 @@ async function getBoardMembers(): Promise<BoardMember[]> {
 export default async function BoardMembersPage() {
   let boardMembers: BoardMember[] = []
   try {
-    // Using type assertion to access the model
-    const result = await prisma.managementMember.findMany({
+    // Fetch from the correct boardmember table
+    const result = await prisma.boardmember.findMany({
       where: {
-        role: 'board_member',
         deletedAt: null,
       },
       orderBy: {

@@ -38,7 +38,11 @@ const footerSections = {
   ],
 }
 
-export default function Footer() {
+interface FooterProps {
+  footerLogo?: string;
+}
+
+export default function Footer({ footerLogo = "/images/MCSK Logo.png" }: FooterProps) {
   return (
     <footer className="bg-[#1a1464] text-white py-8">
       
@@ -52,11 +56,12 @@ export default function Footer() {
             transition={{ duration: 0.5 }}
           >
             <Image 
-              src="/images/mcsk-logo-white.svg"
+              src={footerLogo}
               alt="MCSK Logo"
               width={100}
               height={100}
               className="mb-4"
+              style={{ width: 'auto', height: 'auto' }}
             />
             <h3 className="text-lg font-semibold mb-4 text-white">About MCSK</h3>
             <p className="text-slate-400">

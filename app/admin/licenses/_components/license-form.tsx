@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import type { License } from '@/types'
 import { Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
@@ -64,40 +64,61 @@ export function LicenseForm({ initialData, members, licenseTypes }: LicenseFormP
   async function onSubmit(data: LicenseFormValues) {
     try {
       setIsLoading(true)
+      toast.success("Saving...")
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      let response: Response
 
       if (initialData) {
-        // Update existing license
-        await fetch(`/api/admin/licenses/${initialData.id}`, {
+        response = await fetch(`/api/admin/licenses/${initialData.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to update license')
+        }
       } else {
-        // Create new license
-        await fetch('/api/admin/licenses', {
+        response = await fetch('/api/admin/licenses', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to create license')
+        }
       }
 
+      clearTimeout(timeoutId)
+
+      await Promise.all([
+        fetch('/api/revalidate?path=/admin/licenses'),
+        fetch('/api/revalidate?path=/licensing')
+      ])
+      
+      toast.success(`License ${initialData ? 'updated' : 'created'} successfully.`)
       router.refresh()
       router.push('/admin/licenses')
-      toast({
-        title: 'Success',
-        description: `License ${initialData ? 'updated' : 'created'} successfully.`,
-      })
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        toast.error(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }

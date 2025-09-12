@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Music Copyright Law in Kenya | MCSK Copyright Protection",
     description: "Learn about music copyright law in Kenya, rights protection, and how MCSK helps protect intellectual property rights",
-    url: "https://mcsk.or.ke/copyright-law",
+    url: "https://mcsk.org/copyright-law",
     siteName: "Music Copyright Society of Kenya",
     locale: "en_US",
     type: "website",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     description: "Learn about music copyright law in Kenya, rights protection, and how MCSK helps protect intellectual property rights",
   },
   alternates: {
-    canonical: "https://mcsk.or.ke/copyright-law",
+    canonical: "https://mcsk.org/copyright-law",
   },
 }
 
@@ -27,7 +27,7 @@ async function getCopyrightLawData() {
   try {
     // Use relative URL for API route within the same Next.js app
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/copyright-law`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 60 }, // Cache for 1 minute for faster updates
     })
     
     if (!res.ok) {

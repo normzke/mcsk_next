@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Privacy Policy | Music Copyright Society of Kenya",
     description: "Learn about how MCSK collects, uses, and protects your personal information. Understand our data protection practices.",
-    url: "https://mcsk.or.ke/privacy",
+    url: "https://mcsk.org/privacy",
     siteName: "Music Copyright Society of Kenya",
     locale: "en_US",
     type: "website",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     description: "Learn about how MCSK collects, uses, and protects your personal information. Understand our data protection practices.",
   },
   alternates: {
-    canonical: "https://mcsk.or.ke/privacy",
+    canonical: "https://mcsk.org/privacy",
   },
 }
 
@@ -27,7 +27,7 @@ async function getPrivacyData() {
   try {
     // Use relative URL for API route within the same Next.js app
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/privacy`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 60 }, // Cache for 1 minute for faster updates
     })
     
     if (!res.ok) {
@@ -84,7 +84,7 @@ async function getPrivacyData() {
       contact: {
         title: "Contact Us",
         content: "<p>If you have any questions about this Privacy Policy, please contact us:</p>",
-        email: "privacy@mcsk.or.ke",
+        email: "privacy@mcsk.org",
         phone: "+254 20 2535988/9",
         address: "Maua Close, Off Parklands Road, Westlands, Nairobi, Kenya"
       }

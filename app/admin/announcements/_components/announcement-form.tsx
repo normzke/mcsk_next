@@ -18,7 +18,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { ImageUpload } from '@/components/ui/image-upload'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import type { Announcement } from '@/types'
 import { Loader2 } from 'lucide-react'
 import { Editor } from '@/components/ui/editor'
@@ -55,40 +55,65 @@ export function AnnouncementForm({ initialData }: AnnouncementFormProps) {
   async function onSubmit(data: AnnouncementFormValues) {
     try {
       setIsLoading(true)
+      toast.success("Saving...")
+
+      // Create AbortController for timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+
+      let response: Response
 
       if (initialData) {
         // Update existing announcement
-        await fetch(`/api/admin/announcements/${initialData.id}`, {
+        response = await fetch(`/api/admin/announcements/${initialData.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to update announcement')
+        }
       } else {
         // Create new announcement
-        await fetch('/api/admin/announcements', {
+        response = await fetch('/api/admin/announcements', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to create announcement')
+        }
       }
 
+      clearTimeout(timeoutId)
+
+      // Invalidate cache for announcements page and admin pages
+      await Promise.all([
+        fetch('/api/revalidate?path=/admin/announcements'),
+        fetch('/api/revalidate?path=/announcements')
+      ])
+      
+      toast.success(`Announcement ${initialData ? 'updated' : 'created'} successfully.`)
       router.refresh()
       router.push('/admin/announcements')
-      toast({
-        title: 'Success',
-        description: `Announcement ${initialData ? 'updated' : 'created'} successfully.`,
-      })
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        toast.error(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }

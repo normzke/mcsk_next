@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(req: Request) {
@@ -57,14 +57,39 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { title, content, image, isActive } = body
+    const { 
+      title, 
+      content, 
+      description, 
+      image, 
+      isActive = true, 
+      isPublished = true, 
+      isFeatured = false, 
+      type = 'info',
+      buttonText,
+      buttonUrl,
+      attachment,
+      publishAt = new Date(),
+      expireAt
+    } = body
 
     const announcement = await prisma.announcement.create({
       data: {
+        id: crypto.randomUUID(),
         title,
+        description: description || null,
         content,
-        image,
-        isActive: isActive ?? true,
+        image: image || null,
+        isActive,
+        isPublished,
+        isFeatured,
+        type,
+        buttonText: buttonText || null,
+        buttonUrl: buttonUrl || null,
+        attachment: attachment || null,
+        publishAt: new Date(publishAt),
+        expireAt: expireAt ? new Date(expireAt) : null,
+        updatedAt: new Date(),
       },
     })
 

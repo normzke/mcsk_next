@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 async function getManagementMember(id: string): Promise<ManagementMember | null> {
   try {
-    const member = await prisma.managementMember.findUnique({
+    const member = await prisma.managementmember.findUnique({
       where: { id },
     })
     

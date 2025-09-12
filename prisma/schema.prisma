@@ -41,6 +41,9 @@ model Member {
   status               String              @default("pending")
   profileImage         String?
   documents            Json?
+  membershipNumber     String?             @unique(map: "Member_membershipNumber_key")
+  approvedAt           DateTime?
+  approvedBy           String?
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
   deletedAt            DateTime?
@@ -56,8 +59,12 @@ model Member {
   licenses             License[]
   membershipCategory   membershipcategory? @relation("MembershipCategory_members", fields: [membershipCategoryId], references: [id])
   waves                Wave[]
+  paymentTransactions  PaymentTransaction[]
+  notifications        Notification[]
 
   @@index([membershipCategoryId], map: "Member_membershipCategoryId_fkey")
+  @@index([membershipNumber])
+  @@index([status])
   @@map("member")
 }
 
@@ -83,6 +90,7 @@ model Wave {
   duration      Int
   coverArt      String
   audioFile     String
+  audioUrl      String?
   status        Boolean        @default(true)
   isFeatured    Boolean        @default(false)
   playCount     Int            @default(0)
@@ -159,7 +167,7 @@ model HeroSlide {
   image       String
   buttonText  String?
   buttonLink  String?
-  order       Int       @default(0)
+  order       Int       @default(0) @map("order")
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -173,7 +181,7 @@ model MembershipBenefit {
   title       String
   description String
   icon        String?
-  order       Int       @default(0)
+  order       Int       @default(0) @map("order")
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -195,7 +203,8 @@ model NewsletterSubscriber {
 model announcement {
   id          String    @id
   title       String
-  content     String
+  description String?
+  content     String    @db.Text
   image       String?
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
@@ -215,9 +224,9 @@ model boardmember {
   id          String    @id
   name        String
   position    String
-  image       String?
-  bio         String?
-  order       Int       @default(0)
+  image       String?   @db.Text
+  bio         String?   @db.Text
+  order       Int       @default(0) @map("order")
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime
@@ -238,6 +247,7 @@ model career {
   benefits           Json
   responsibilities   Json
   location           String?
+  salary             String?
   type               String?
   deadline           DateTime?
   isActive           Boolean             @default(true)
@@ -252,7 +262,7 @@ model download {
   title       String
   description String?
   file        String
-  order       Int       @default(0)
+  order       Int       @default(0) @map("order")
   downloads   Int       @default(0)
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
@@ -281,7 +291,7 @@ model faq {
   id        String    @id
   question  String
   answer    String
-  order     Int       @default(0)
+  order     Int       @default(0) @map("order")
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime
@@ -294,7 +304,7 @@ model gallery {
   description String?
   image       String
   type        String    @default("image")
-  order       Int       @default(0)
+  order       Int       @default(0) @map("order")
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime
@@ -311,7 +321,7 @@ model licensetype {
   fees         Json
   icon         String?
   duration     String
-  order        Int       @default(0)
+  order        Int       @default(0) @map("order")
   isActive     Boolean   @default(true)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime
@@ -323,9 +333,9 @@ model managementmember {
   id           String    @id
   name         String
   position     String
-  image        String?
-  bio          String?
-  order        Int       @default(0)
+  image        String?   @db.Text
+  bio          String?   @db.Text
+  order        Int       @default(0) @map("order")
   isActive     Boolean   @default(true)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime
@@ -335,18 +345,20 @@ model managementmember {
   endDate      DateTime?
   firstName    String
   lastName     String
+  linkedinUrl  String?
   phone        String?
-  profileImage String?
+  profileImage String?   @db.Text
   role         String
   startDate    DateTime?
   status       String    @default("active")
+  twitterUrl   String?
 }
 
 model membershipcategory {
   id        String   @id
   title     String
   features  Json
-  order     Int?
+  order     Int?     @map("order")
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime
@@ -356,7 +368,7 @@ model membershipcategory {
 model news {
   id        String    @id
   title     String
-  content   String
+  content   String    @db.Text
   image     String?
   slug      String    @unique(map: "News_slug_key")
   isActive  Boolean   @default(true)
@@ -366,26 +378,28 @@ model news {
 }
 
 model page {
-  id        String    @id
-  title     String
-  content   String
-  slug      String    @unique(map: "Page_slug_key")
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime
-  deletedAt DateTime?
+  id              String    @id
+  title           String
+  content         String    @db.Text
+  metaDescription String?
+  slug            String    @unique(map: "Page_slug_key")
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime
+  deletedAt       DateTime?
 }
 
 model partner {
-  id        String    @id
-  name      String
-  logo      String?
-  website   String?
-  order     Int       @default(0)
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime
-  deletedAt DateTime?
+  id          String    @id
+  name        String
+  description String?   @db.Text
+  logo        String?   @db.Text
+  website     String?
+  order       Int       @default(0) @map("order")
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  deletedAt   DateTime?
 }
 
 model seometa {
@@ -404,9 +418,9 @@ model seometa {
 model service {
   id          String    @id
   title       String
-  description String
-  icon        String?
-  order       Int       @default(0)
+  description String    @db.Text
+  icon        String?   @db.Text
+  order       Int       @default(0) @map("order")
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime
@@ -414,7 +428,7 @@ model service {
 }
 
 model user {
-  id              String         @id
+  id              String         @id @default(uuid())
   name            String
   email           String         @unique(map: "User_email_key")
   emailVerifiedAt DateTime?
@@ -425,4 +439,124 @@ model user {
   updatedAt       DateTime
   deletedAt       DateTime?
   wavePlaylists   WavePlaylist[]
+}
+
+model SocialMedia {
+  id          String   @id @default(uuid())
+  platform    String   // twitter, facebook, instagram, linkedin, youtube
+  handle      String   // @username or page name
+  url         String   // Full URL to the social media profile
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@unique([platform])
+  @@map("social_media")
+}
+
+model SocialPost {
+  id          String   @id @default(uuid())
+  platform    String   // twitter, facebook, instagram
+  content     String   @db.Text
+  image       String?
+  author      String
+  authorImage String?
+  date        DateTime
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  shares      Int      @default(0)
+  url         String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@map("social_post")
+}
+
+model PaymentPackage {
+  id          String   @id @default(uuid())
+  name        String   // e.g., "Composer Membership", "Publisher Membership"
+  description String   @db.Text
+  amount      Decimal  @db.Decimal(10, 2)
+  currency    String   @default("KES")
+  duration    String   // e.g., "Lifetime", "Annual", "Monthly"
+  features    Json?    // Array of features
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  transactions PaymentTransaction[]
+
+  @@map("payment_package")
+}
+
+model MpesaCredentials {
+  id              String   @id @default(uuid())
+  environment     String   // "sandbox" or "production"
+  consumerKey     String
+  consumerSecret  String
+  passkey         String
+  shortcode       String
+  businessName    String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  @@unique([environment])
+  @@map("mpesa_credentials")
+}
+
+model PaymentTransaction {
+  id                String   @id @default(uuid())
+  memberId          String?
+  packageId         String?
+  amount            Decimal  @db.Decimal(10, 2)
+  currency          String   @default("KES")
+  status            String   // "pending", "completed", "failed", "cancelled"
+  paymentMethod     String   // "mpesa", "bank", "card"
+  transactionId     String?  // External transaction ID
+  mpesaRequestId    String?  // M-Pesa request ID
+  mpesaCheckoutId   String?  // M-Pesa checkout ID
+  mpesaReceiptNumber String? // M-Pesa receipt number
+  phoneNumber       String?  // Customer phone number
+  description       String?
+  failureReason     String?  // Reason for payment failure
+  completedAt       DateTime? // When payment was completed
+  metadata          Json?    // Additional payment data
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
+
+  member          Member?          @relation(fields: [memberId], references: [id])
+  package         PaymentPackage?  @relation(fields: [packageId], references: [id])
+
+  @@index([memberId])
+  @@index([packageId])
+  @@index([status])
+  @@map("payment_transaction")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  memberId  String
+  type      String   // membership_approved, payment_failed, application_received, etc.
+  title     String
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId])
+  @@index([type])
+  @@index([isRead])
+  @@map("notification")
 }

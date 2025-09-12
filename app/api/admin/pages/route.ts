@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(req: Request) {
@@ -61,10 +61,12 @@ export async function POST(req: Request) {
 
     const page = await prisma.page.create({
       data: {
+        id: crypto.randomUUID(),
         title: body.title,
         content: body.content,
         slug: body.slug,
         isActive: body.isActive,
+        updatedAt: new Date(),
       },
     })
 

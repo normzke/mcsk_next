@@ -111,6 +111,59 @@ export const columns: ColumnDef<Partner>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} />,
+    cell: ({ row }) => {
+      const partner = row.original
+      
+      const deletePartner = async () => {
+        try {
+          // Add timeout to prevent hanging
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+          
+          const response = await fetch(`/api/admin/partners/${partner.id}`, {
+            method: 'DELETE',
+            signal: controller.signal,
+          })
+          
+          clearTimeout(timeoutId)
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            throw new Error(`Failed to delete partner: ${response.status} ${errorText}`)
+          }
+          
+          // Invalidate cache after successful deletion
+          await fetch('/api/revalidate?path=/admin/partners')
+          await fetch('/api/revalidate?path=/about')
+          
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Error deleting partner:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Delete request timed out. Please try again.')
+          }
+          return Promise.reject(error)
+        }
+      }
+      
+      return (
+        <DataTableRowActions
+          row={row}
+          actions={[
+            {
+              label: 'Edit',
+              href: `/admin/partners/${partner.id}/edit`,
+            },
+            {
+              label: 'View',
+              href: `/admin/partners/${partner.id}`,
+            },
+          ]}
+          onDelete={deletePartner}
+          itemName={partner.name}
+          itemType="Partner"
+        />
+      )
+    },
   },
 ] 

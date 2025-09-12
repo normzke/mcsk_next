@@ -12,7 +12,7 @@ export default function robots(): MetadataRoute.Robots {
         '/private/',
       ],
     },
-    sitemap: 'https://mcsk.or.ke/sitemap.xml',
-    host: 'https://mcsk.or.ke',
+      sitemap: 'https://mcsk.org/sitemap.xml',
+  host: 'https://mcsk.org',
   }
 }

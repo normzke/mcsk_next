@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
+import { randomUUID } from 'crypto'
 
 export async function GET(req: Request) {
   try {
@@ -25,13 +26,13 @@ export async function GET(req: Request) {
     }
 
     const [managementMembers, total] = await Promise.all([
-      prisma.managementMember.findMany({
+      prisma.managementmember.findMany({
         where,
         orderBy: { order: 'asc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.managementMember.count({ where }),
+      prisma.managementmember.count({ where }),
     ])
 
     return NextResponse.json({
@@ -58,6 +59,11 @@ export async function POST(req: Request) {
 
     const body = await req.json()
 
+    // Split name into firstName and lastName
+    const nameParts = body.name.split(' ')
+    const firstName = nameParts[0] || ''
+    const lastName = nameParts.slice(1).join(' ') || ''
+
     // Validate role and department to ensure they match the expected enum values
     const validRoles = ['board_member', 'executive', 'director', 'manager'] as const;
     const validDepartments = ['board', 'finance', 'licensing', 'distribution', 'legal', 'operations', 'it', 'hr'] as const;
@@ -69,15 +75,15 @@ export async function POST(req: Request) {
     
     // Prepare the data with all required fields
     const managementMemberData = {
+      id: randomUUID(),
       name: body.name,
-      firstName: body.firstName || '',
-      lastName: body.lastName || '',
-      email: body.email || '',
+      firstName,
+      lastName,
+      email: body.email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@mcsk.org`,
       position: body.position || '',
       role: role as 'board_member' | 'executive' | 'director' | 'manager',
       department: department as 'board' | 'finance' | 'licensing' | 'distribution' | 'legal' | 'operations' | 'it' | 'hr',
       profileImage: body.profileImage || '',
-      image: body.image || '',
       bio: body.bio || '',
       order: body.order || 0,
       isActive: body.isActive ?? true,
@@ -87,9 +93,10 @@ export async function POST(req: Request) {
       endDate: body.endDate ? new Date(body.endDate) : null,
       linkedinUrl: body.linkedinUrl || '',
       twitterUrl: body.twitterUrl || '',
+      updatedAt: new Date(),
     }
 
-    const managementMember = await prisma.managementMember.create({
+    const managementMember = await prisma.managementmember.create({
       data: managementMemberData,
     })
 

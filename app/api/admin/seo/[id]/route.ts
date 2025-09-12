@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
@@ -12,7 +12,7 @@ export async function GET(
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    const seoMeta = await prisma.seoMeta.findUnique({
+    const seoMeta = await prisma.seometa.findUnique({
       where: {
         id: params.id,
       },
@@ -43,7 +43,7 @@ export async function PATCH(
 
     // Check if path already exists for another entry
     if (body.path) {
-      const existing = await prisma.seoMeta.findFirst({
+      const existing = await prisma.seometa.findFirst({
         where: {
           path: body.path,
           id: { not: params.id },
@@ -55,7 +55,7 @@ export async function PATCH(
       }
     }
 
-    const seoMeta = await prisma.seoMeta.update({
+    const seoMeta = await prisma.seometa.update({
       where: {
         id: params.id,
       },
@@ -87,7 +87,7 @@ export async function DELETE(
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    await prisma.seoMeta.delete({
+    await prisma.seometa.delete({
       where: {
         id: params.id,
       },

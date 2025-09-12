@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import type { SeoMeta } from '@/types'
 import { Loader2 } from 'lucide-react'
 import { ImageUpload } from '@/components/ui/image-upload'
@@ -58,40 +58,61 @@ export function SEOForm({ initialData }: SEOFormProps) {
   async function onSubmit(data: SEOFormValues) {
     try {
       setIsLoading(true)
+      toast.success("Saving...")
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      let response: Response
 
       if (initialData) {
-        // Update existing SEO meta
-        await fetch(`/api/admin/seo/${initialData.id}`, {
+        response = await fetch(`/api/admin/seo/${initialData.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to update SEO meta')
+        }
       } else {
-        // Create new SEO meta
-        await fetch('/api/admin/seo', {
+        response = await fetch('/api/admin/seo', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to create SEO meta')
+        }
       }
 
+      clearTimeout(timeoutId)
+
+      await Promise.all([
+        fetch('/api/revalidate?path=/admin/seo'),
+        fetch(`/api/revalidate?path=${data.path}`)
+      ])
+      
+      toast.success(`SEO meta ${initialData ? 'updated' : 'created'} successfully.`)
       router.refresh()
       router.push('/admin/seo')
-      toast({
-        title: 'Success',
-        description: `SEO meta ${initialData ? 'updated' : 'created'} successfully.`,
-      })
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        toast.error(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }

@@ -55,9 +55,10 @@ const navItems: NavItem[] = [
 interface DesktopDropdownMenuProps {
   item: NavItem;
   pathname: string;
+  isScrolled: boolean;
 }
 
-function DesktopDropdownMenu({ item, pathname }: DesktopDropdownMenuProps) {
+function DesktopDropdownMenu({ item, pathname, isScrolled }: DesktopDropdownMenuProps) {
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const hasActiveChild = item.children?.some(child => pathname === child.href);
   
@@ -65,7 +66,8 @@ function DesktopDropdownMenu({ item, pathname }: DesktopDropdownMenuProps) {
     <div className="relative group px-4 py-2">
       <button 
         className={cn(
-          "flex items-center text-sm font-medium transition-all duration-300",
+          "flex items-center font-medium transition-all duration-300",
+          isScrolled ? "text-xs" : "text-sm",
           hasActiveChild
             ? "text-[#1a1464] font-semibold"
             : "text-gray-600 group-hover:text-[#1a1464]"
@@ -173,9 +175,24 @@ function MobileDropdownMenu({ item, setIsOpen }: MobileDropdownMenuProps) {
   );
 }
 
-export default function NavHeader() {
+interface NavHeaderProps {
+  headerLogo?: string;
+}
+
+export default function NavHeader({ headerLogo = "/images/MCSK Logo.png" }: NavHeaderProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isScrolled, setIsScrolled] = React.useState(false);
+
+  // Add scroll effect
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   
   return (
     <header className="w-full">
@@ -202,16 +219,35 @@ export default function NavHeader() {
       </div>
       
       {/* Main navigation - futuristic design */}
-      <div className="sticky top-0 z-50 w-full border-b border-blue-100 bg-white/90 backdrop-blur-md shadow-sm">
+      <div className={cn(
+        "sticky top-0 z-50 w-full border-b transition-all duration-300",
+        isScrolled 
+          ? "bg-white/98 backdrop-blur-xl shadow-xl border-blue-200 transform translate-y-0" 
+          : "bg-white/95 backdrop-blur-lg shadow-lg border-blue-100"
+      )}>
         <div className="container mx-auto px-4">
-          <div className="flex h-16 items-center justify-between">
+          <div className={cn(
+            "flex items-center justify-between transition-all duration-300",
+            isScrolled ? "h-14" : "h-16"
+          )}>
             {/* Logo with futuristic styling */}
             <Link href="/" className="flex items-center space-x-2 group">
-              <div className="relative overflow-hidden rounded-full p-1 bg-gradient-to-r from-blue-100 to-indigo-100 group-hover:from-blue-200 group-hover:to-indigo-200 transition-all duration-300">
-                <img src="/images/MCSK Logo.png" alt="MCSK Logo" className="h-8 w-auto relative z-10" />
+              <div className={cn(
+                "relative overflow-hidden rounded-full p-1 transition-all duration-300",
+                isScrolled 
+                  ? "bg-gradient-to-r from-blue-200 to-indigo-200 group-hover:from-blue-300 group-hover:to-indigo-300" 
+                  : "bg-gradient-to-r from-blue-100 to-indigo-100 group-hover:from-blue-200 group-hover:to-indigo-200"
+              )}>
+                <img src={headerLogo} alt="MCSK Logo" className={cn(
+                  "w-auto relative z-10 transition-all duration-300",
+                  isScrolled ? "h-7" : "h-8"
+                )} />
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#1a1464] to-[#3a2b8c] group-hover:from-[#3a2b8c] group-hover:to-[#1a1464] transition-all duration-500">MCSK</span>
+              <span className={cn(
+                "font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#1a1464] to-[#3a2b8c] group-hover:from-[#3a2b8c] group-hover:to-[#1a1464] transition-all duration-500",
+                isScrolled ? "text-lg" : "text-xl"
+              )}>MCSK</span>
             </Link>
 
             {/* Desktop Navigation with futuristic styling */}
@@ -219,7 +255,7 @@ export default function NavHeader() {
               {navItems.map((item) => {
                 if (item.children) {
                   // Handle dropdown menu
-                  return <DesktopDropdownMenu key={item.label} item={item} pathname={pathname} />;
+                  return <DesktopDropdownMenu key={item.label} item={item} pathname={pathname} isScrolled={isScrolled} />;
                 }
                 
                 // Regular menu item with futuristic active state
@@ -231,7 +267,8 @@ export default function NavHeader() {
                     className="relative px-4 py-2 group"
                   >
                     <span className={cn(
-                      "text-sm font-medium transition-all duration-300",
+                      "font-medium transition-all duration-300",
+                      isScrolled ? "text-xs" : "text-sm",
                       isActive 
                         ? "text-[#1a1464] font-semibold" 
                         : "text-gray-600 group-hover:text-[#1a1464]"
@@ -256,7 +293,7 @@ export default function NavHeader() {
                 className="bg-gradient-to-r from-[#1a1464] to-[#2c2580] hover:from-[#2c2580] hover:to-[#1a1464] text-white shadow-md transition-all duration-300 hover:shadow-lg"
                 asChild
               >
-                <Link href="/apply-for-license">Apply For License</Link>
+                <a href="https://online.mcsk.org/" target="_blank" rel="noopener noreferrer">Apply For License</a>
               </Button>
             </div>
 
@@ -276,7 +313,7 @@ export default function NavHeader() {
                 <SheetContent side="right" className="border-l border-blue-100">
                   <div className="flex items-center mb-8">
                     <div className="relative overflow-hidden rounded-full p-1 bg-gradient-to-r from-blue-100 to-indigo-100 mr-2">
-                      <img src="/images/MCSK Logo.png" alt="MCSK Logo" className="h-8 w-auto" />
+                      <img src={headerLogo} alt="MCSK Logo" className="h-8 w-auto" />
                     </div>
                     <h3 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#1a1464] to-[#3a2b8c]">MCSK</h3>
                   </div>
@@ -309,7 +346,7 @@ export default function NavHeader() {
                         className="bg-gradient-to-r from-[#1a1464] to-[#2c2580] hover:from-[#2c2580] hover:to-[#1a1464] text-white w-full shadow-md transition-all duration-300"
                         asChild
                       >
-                        <Link href="/apply-for-license">Apply For License</Link>
+                        <Link href="https://online.mcsk.org/" target="_blank" rel="noopener noreferrer">Apply For License</Link>
                       </Button>
                     </div>
                   </nav>
@@ -318,6 +355,15 @@ export default function NavHeader() {
             </div>
           </div>
         </div>
+        {/* Scroll indicator */}
+        {isScrolled && (
+          <motion.div 
+            className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-indigo-600"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ duration: 0.3 }}
+          />
+        )}
       </div>
     </header>
   );

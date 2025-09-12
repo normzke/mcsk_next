@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { getSession } from '@/lib/custom-auth'
 import { redirect } from 'next/navigation'
 import { ProfileForm } from './_components/profile-form'
 
@@ -10,10 +10,10 @@ export const metadata: Metadata = {
 }
 
 export default async function ProfilePage() {
-  const session = await auth()
+  const session = await getSession()
 
   if (!session?.user?.email) {
-    redirect('/login/admin')
+    redirect('/admin-login')
   }
 
   const user = await prisma.user.findUnique({
@@ -23,7 +23,7 @@ export default async function ProfilePage() {
   })
 
   if (!user) {
-    redirect('/login/admin')
+    redirect('/admin-login')
   }
 
   return (

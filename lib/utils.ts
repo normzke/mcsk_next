@@ -30,5 +30,12 @@ export function formatDate(date: Date | string) {
   
   const dateObj = typeof date === 'string' ? new Date(date) : date
   
-  return format(dateObj, 'MMM d, yyyy')
+  // Use ISO string and extract date parts to avoid timezone issues
+  const year = dateObj.getFullYear()
+  const month = dateObj.getMonth()
+  const day = dateObj.getDate()
+  
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  
+  return `${monthNames[month]} ${day}, ${year}`
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -17,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 import { Icons } from "@/components/icons"
 import type { Wave } from '@/types'
 
@@ -49,6 +50,7 @@ interface WaveFormProps {
 }
 
 export function WaveForm({ initialData }: WaveFormProps) {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<WaveFormValues>({
@@ -72,29 +74,66 @@ export function WaveForm({ initialData }: WaveFormProps) {
   })
 
   async function onSubmit(data: WaveFormValues) {
-    setIsLoading(true)
-
     try {
-      // TODO: Implement API call
+      setIsLoading(true)
+      toast.success("Saving...")
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      let response: Response
+
       if (initialData) {
-        // Update existing wave
+        response = await fetch(`/api/admin/waves/${initialData.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to update wave')
+        }
       } else {
-        // Create new wave
+        response = await fetch('/api/admin/waves', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to create wave')
+        }
       }
 
-      toast({
-        title: "Success",
-        description: `Wave ${initialData ? "updated" : "created"} successfully.`,
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      })
-    }
+      clearTimeout(timeoutId)
 
-    setIsLoading(false)
+      await Promise.all([
+        fetch('/api/revalidate?path=/admin/waves'),
+        fetch('/api/revalidate?path=/waves')
+      ])
+      
+      toast.success(`Wave ${initialData ? 'updated' : 'created'} successfully.`)
+      router.refresh()
+      router.push('/admin/waves')
+    } catch (error) {
+      console.error(error)
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        toast.error(errorMessage)
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

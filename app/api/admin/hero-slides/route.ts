@@ -92,14 +92,16 @@ export async function POST(req: Request) {
 
     const slide = await prisma.heroSlide.create({
       data: {
-        title,
-        subtitle,
-        description,
-        image,
-        buttonText,
-        buttonLink,
-        order: order || 0,
-        isActive: isActive ?? true,
+        id: crypto.randomUUID(),
+        title: body.title,
+        subtitle: body.subtitle,
+        description: body.description,
+        image: body.image,
+        buttonText: body.buttonText,
+        buttonLink: body.buttonUrl,
+        order: body.order || 0,
+        isActive: body.isActive ?? true,
+        updatedAt: new Date(),
       },
     });
 

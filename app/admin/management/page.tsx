@@ -19,13 +19,13 @@ export const dynamic = 'force-dynamic';
 
 async function getManagementStats() {
   try {
-    const total = await prisma.managementMember.count({
+    const total = await prisma.managementmember.count({
       where: { deletedAt: null },
     });
-    const active = await prisma.managementMember.count({
+    const active = await prisma.managementmember.count({
       where: { deletedAt: null, isActive: true },
     });
-    const inactive = await prisma.managementMember.count({
+    const inactive = await prisma.managementmember.count({
       where: { deletedAt: null, isActive: false },
     });
 
@@ -38,7 +38,7 @@ async function getManagementStats() {
 
 async function getManagementMembers(): Promise<ManagementMember[]> {
   try {
-    const members = await prisma.managementMember.findMany({
+    const members = await prisma.managementmember.findMany({
       where: {
         deletedAt: null,
       },

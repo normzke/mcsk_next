@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import type { Faq } from '@/types'
 import { Loader2 } from 'lucide-react'
 import { Editor } from '@/components/ui/editor'
@@ -52,40 +52,61 @@ export function FAQForm({ initialData }: FAQFormProps) {
   async function onSubmit(data: FAQFormValues) {
     try {
       setIsLoading(true)
+      toast.success("Saving...")
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      let response: Response
 
       if (initialData) {
-        // Update existing FAQ
-        await fetch(`/api/admin/faqs/${initialData.id}`, {
+        response = await fetch(`/api/admin/faqs/${initialData.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to update FAQ')
+        }
       } else {
-        // Create new FAQ
-        await fetch('/api/admin/faqs', {
+        response = await fetch('/api/admin/faqs', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to create FAQ')
+        }
       }
 
+      clearTimeout(timeoutId)
+
+      await Promise.all([
+        fetch('/api/revalidate?path=/admin/faqs'),
+        fetch('/api/revalidate?path=/faqs')
+      ])
+      
+      toast.success(`FAQ ${initialData ? 'updated' : 'created'} successfully.`)
       router.refresh()
       router.push('/admin/faqs')
-      toast({
-        title: 'Success',
-        description: `FAQ ${initialData ? 'updated' : 'created'} successfully.`,
-      })
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        toast.error(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }

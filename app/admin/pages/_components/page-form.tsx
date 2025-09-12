@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import type { Page } from '@/types'
 import { Loader2 } from 'lucide-react'
 import { Editor } from '@/components/ui/editor'
@@ -53,40 +53,61 @@ export function PageForm({ initialData }: PageFormProps) {
   async function onSubmit(data: PageFormValues) {
     try {
       setIsLoading(true)
+      toast.success("Saving...")
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      let response: Response
 
       if (initialData) {
-        // Update existing page
-        await fetch(`/api/admin/pages/${initialData.id}`, {
+        response = await fetch(`/api/admin/pages/${initialData.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to update page')
+        }
       } else {
-        // Create new page
-        await fetch('/api/admin/pages', {
+        response = await fetch('/api/admin/pages', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
+          signal: controller.signal,
         })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Failed to create page')
+        }
       }
 
+      clearTimeout(timeoutId)
+
+      await Promise.all([
+        fetch('/api/revalidate?path=/admin/pages'),
+        fetch(`/api/revalidate?path=/${data.slug}`)
+      ])
+      
+      toast.success(`Page ${initialData ? 'updated' : 'created'} successfully.`)
       router.refresh()
       router.push('/admin/pages')
-      toast({
-        title: 'Success',
-        description: `Page ${initialData ? 'updated' : 'created'} successfully.`,
-      })
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        toast.error(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }

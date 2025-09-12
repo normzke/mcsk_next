@@ -2,6 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import { DataTableRowActions } from "@/components/ui/data-table/row-actions"
@@ -46,6 +47,7 @@ export const columns: ColumnDef<Member>[] = [
             alt={`${row.getValue("first_name")} ${row.getValue("last_name")}`}
             fill
             className="rounded-full object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       ) : null
@@ -130,6 +132,42 @@ export const columns: ColumnDef<Member>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} />,
+    cell: ({ row }) => {
+      const member = row.original
+      return (
+        <div className="flex items-center space-x-2">
+          {member.status === 'pending' && (
+            <Button
+              size="sm"
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/admin/members/approve', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      memberId: member.id,
+                    }),
+                  })
+                  
+                  if (response.ok) {
+                    // Refresh the page or update the table
+                    window.location.reload()
+                  } else {
+                    console.error('Failed to approve member')
+                  }
+                } catch (error) {
+                  console.error('Error approving member:', error)
+                }
+              }}
+            >
+              Approve
+            </Button>
+          )}
+          <DataTableRowActions row={row} />
+        </div>
+      )
+    },
   },
 ] 

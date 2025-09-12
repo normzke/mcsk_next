@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
+import { randomUUID } from 'crypto'
 
 export async function GET(req: Request) {
   try {
@@ -61,6 +62,7 @@ export async function POST(req: Request) {
 
     const event = await prisma.event.create({
       data: {
+        id: randomUUID(),
         title: body.title,
         description: body.description,
         date: new Date(body.date),
@@ -70,7 +72,9 @@ export async function POST(req: Request) {
         venue: body.venue,
         startTime: body.startTime ? new Date(body.startTime) : null,
         endTime: body.endTime ? new Date(body.endTime) : null,
-        isActive: body.isActive ?? true,
+        isActive: body.isActive,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     })
 

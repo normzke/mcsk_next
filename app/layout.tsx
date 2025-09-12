@@ -4,13 +4,14 @@ import { Providers } from './providers'
 import NavHeader from '@/components/ui/nav-header'
 import Footer from '@/components/ui/footer'
 import { SiteStructuredData } from '@/components/seo/StructuredDataScript'
+import { getLogoUrl } from '@/lib/site-settings'
 
 export const metadata: Metadata = {
   title: 'MCSK - Music Copyright Society of Kenya | Official Website',
-  description: 'The Music Copyright Society of Kenya (MCSK) is a collective management organization that protects the rights of music creators and publishers in Kenya.',
-  metadataBase: new URL('https://mcsk.or.ke'),
-  keywords: 'music copyright kenya, royalties, music licensing, copyright protection, musicians kenya, mcsk',
-  authors: [{ name: 'MCSK', url: 'https://mcsk.or.ke' }],
+  description: 'The Music Copyright Society of Kenya (MCSK) is a collective management organization that protects the rights of music creators and publishers in Kenya. We provide music licensing, royalty collection, and copyright protection services.',
+  metadataBase: new URL('https://mcsk.org'),
+  keywords: 'music copyright kenya, royalties, music licensing, copyright protection, musicians kenya, mcsk, music society, copyright society, kenya music, music rights, intellectual property',
+  authors: [{ name: 'MCSK', url: 'https://mcsk.org' }],
   creator: 'Music Copyright Society of Kenya',
   publisher: 'Music Copyright Society of Kenya',
   formatDetection: {
@@ -18,16 +19,27 @@ export const metadata: Metadata = {
     address: true,
     telephone: true,
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
     type: 'website',
     locale: 'en_KE',
-    url: 'https://mcsk.or.ke',
+    url: 'https://mcsk.org',
     siteName: 'Music Copyright Society of Kenya',
     title: 'MCSK - Music Copyright Society of Kenya | Official Website',
     description: 'The Music Copyright Society of Kenya (MCSK) is a collective management organization that protects the rights of music creators and publishers in Kenya.',
     images: [
       {
-        url: 'https://mcsk.or.ke/images/mcsk-og-image.jpg',
+        url: 'https://mcsk.org/images/mcsk-og-image.jpg',
         width: 1200,
         height: 630,
         alt: 'MCSK - Music Copyright Society of Kenya',
@@ -39,28 +51,37 @@ export const metadata: Metadata = {
     title: 'MCSK - Music Copyright Society of Kenya | Official Website',
     description: 'The Music Copyright Society of Kenya (MCSK) is a collective management organization that protects the rights of music creators and publishers in Kenya.',
     creator: '@mcsk_kenya',
-    images: ['https://mcsk.or.ke/images/mcsk-twitter-image.jpg'],
+    images: ['https://mcsk.org/images/mcsk-twitter-image.jpg'],
   },
   alternates: {
-    canonical: 'https://mcsk.or.ke',
+    canonical: 'https://mcsk.org',
   },
   verification: {
-    google: 'google-site-verification-code',
+    // TODO: Add your actual Google Search Console verification code
+    // google: 'your-google-verification-code',
+  },
+  other: {
+    'geo.region': 'KE',
+    'geo.placename': 'Nairobi',
+    'geo.position': '-1.2921;36.8219',
+    'ICBM': '-1.2921, 36.8219',
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Fetch logo URLs
+  const headerLogo = await getLogoUrl('header')
+  const footerLogo = await getLogoUrl('footer')
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="theme-color" content="#ffffff" />
@@ -68,9 +89,9 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans antialiased flex flex-col">
         <Providers>
           <SiteStructuredData />
-          <NavHeader />
+          <NavHeader headerLogo={headerLogo} />
           <main className="flex-grow">{children}</main>
-          <Footer />
+          <Footer footerLogo={footerLogo} />
         </Providers>
       </body>
     </html>

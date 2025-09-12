@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
+import { randomUUID } from 'crypto'
 
 export async function GET(req: Request) {
   try {
@@ -25,20 +26,14 @@ export async function GET(req: Request) {
     }
 
     const [boardMembers, total] = await Promise.all([
-      prisma.managementMember.findMany({
-        where: {
-          ...where,
-          role: 'board_member',
-        },
+      prisma.boardmember.findMany({
+        where,
         orderBy: { order: 'asc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.managementMember.count({
-        where: {
-          ...where,
-          role: 'board_member',
-        },
+      prisma.boardmember.count({
+        where,
       }),
     ])
 
@@ -66,21 +61,21 @@ export async function POST(req: Request) {
 
     const body = await req.json()
 
-    const boardMember = await prisma.managementMember.create({
+    const boardMember = await prisma.boardmember.create({
       data: {
+        id: randomUUID(),
         name: body.name,
-        firstName: body.firstName || '',
-        lastName: body.lastName || '',
-        email: body.email || `${body.name.toLowerCase().replace(/\s+/g, '.')}@mcsk.or.ke`,
         position: body.position,
         image: body.image,
         bio: body.bio,
-        order: body.order || 0,
-        isActive: body.isActive ?? true,
-        role: 'board_member',
-        department: 'board',
-        status: 'active',
-        profileImage: body.image,
+        order: body.order,
+        isActive: body.isActive,
+        email: body.email,
+        linkedinUrl: body.linkedinUrl,
+        phone: body.phone,
+        twitterUrl: body.twitterUrl,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     })
 

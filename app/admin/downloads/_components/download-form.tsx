@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import type { Download } from '@/types'
 import { Loader2 } from 'lucide-react'
 import { FileUpload } from '@/components/ui/file-upload'
@@ -55,40 +55,59 @@ export function DownloadForm({ initialData }: DownloadFormProps) {
   async function onSubmit(data: DownloadFormValues) {
     try {
       setIsLoading(true)
-
-      if (initialData) {
-        // Update existing download
-        await fetch(`/api/admin/downloads/${initialData.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        })
-      } else {
-        // Create new download
-        await fetch('/api/admin/downloads', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        })
+      
+      // Validate file upload
+      if (!data.file) {
+        toast.error('Please upload a file')
+        return
       }
 
+      // Show optimistic update
+      toast.success(`Saving ${initialData ? 'changes' : 'download'}...`)
+
+      // Add timeout to prevent hanging
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+
+      const url = initialData ? `/api/admin/downloads/${initialData.id}` : '/api/admin/downloads'
+      const method = initialData ? 'PATCH' : 'POST'
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('API Error:', errorData)
+        throw new Error(errorData.message || `Failed to ${initialData ? 'update' : 'create'} download`)
+      }
+
+      const result = await response.json()
+      console.log('Success:', result)
+
+      // Invalidate cache for downloads page and admin pages
+      await Promise.all([
+        fetch('/api/revalidate?path=/downloads'),
+        fetch('/api/revalidate?path=/admin/downloads')
+      ])
+      
+      toast.success(`Download ${initialData ? 'updated' : 'created'} successfully.`)
       router.refresh()
       router.push('/admin/downloads')
-      toast({
-        title: 'Success',
-        description: `Download ${initialData ? 'updated' : 'created'} successfully.`,
-      })
     } catch (error) {
-      console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      console.error('Download submission error:', error)
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.')
+      } else {
+        toast.error(error instanceof Error ? error.message : 'Something went wrong. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }

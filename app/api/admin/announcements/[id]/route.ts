@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
@@ -40,23 +40,23 @@ export async function PATCH(
     }
 
     const body = await req.json()
-    const { title, content, image, isActive } = body
 
     const announcement = await prisma.announcement.update({
       where: {
         id: params.id,
       },
       data: {
-        title,
-        content,
-        image,
-        isActive,
+        title: body.title,
+        description: body.description,
+        content: body.content,
+        image: body.image,
+        isActive: body.isActive,
       },
     })
 
     return NextResponse.json(announcement)
   } catch (error) {
-    console.error('[ANNOUNCEMENT_UPDATE]', error)
+    console.error('[ANNOUNCEMENT_PATCH]', error)
     return new NextResponse('Internal error', { status: 500 })
   }
 }
@@ -66,20 +66,43 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('[ANNOUNCEMENT_DELETE] Starting deletion for ID:', params.id)
+    
     const session = await auth()
     if (!session || session.user.role !== 'admin') {
+      console.log('[ANNOUNCEMENT_DELETE] Unauthorized access attempt')
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    await prisma.announcement.delete({
+    console.log('[ANNOUNCEMENT_DELETE] User authorized, proceeding with deletion')
+
+    // Check if the announcement exists first
+    const existingAnnouncement = await prisma.announcement.findUnique({
       where: {
         id: params.id,
       },
     })
 
-    return new NextResponse(null, { status: 204 })
+    if (!existingAnnouncement) {
+      console.log('[ANNOUNCEMENT_DELETE] Announcement not found:', params.id)
+      return new NextResponse('Announcement not found', { status: 404 })
+    }
+
+    console.log('[ANNOUNCEMENT_DELETE] Announcement found, performing soft delete')
+
+    const announcement = await prisma.announcement.update({
+      where: {
+        id: params.id,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    })
+
+    console.log('[ANNOUNCEMENT_DELETE] Soft delete successful:', announcement.id)
+    return NextResponse.json(announcement)
   } catch (error) {
-    console.error('[ANNOUNCEMENT_DELETE]', error)
+    console.error('[ANNOUNCEMENT_DELETE] Error:', error)
     return new NextResponse('Internal error', { status: 500 })
   }
 } 

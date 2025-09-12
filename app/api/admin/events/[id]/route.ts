@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
@@ -48,13 +48,13 @@ export async function PATCH(
       data: {
         title: body.title,
         description: body.description,
-        date: new Date(body.date),
-        location: body.location,
         image: body.image,
-        category: body.category,
+        date: body.date,
+        startTime: body.startTime,
+        endTime: body.endTime,
         venue: body.venue,
-        startTime: body.startTime ? new Date(body.startTime) : null,
-        endTime: body.endTime ? new Date(body.endTime) : null,
+        location: body.location,
+        category: body.category,
         isActive: body.isActive,
       },
     })
@@ -71,10 +71,29 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('[EVENT_DELETE] Starting deletion for ID:', params.id)
+    
     const session = await auth()
     if (!session || session.user.role !== 'admin') {
+      console.log('[EVENT_DELETE] Unauthorized access attempt')
       return new NextResponse('Unauthorized', { status: 401 })
     }
+
+    console.log('[EVENT_DELETE] User authorized, proceeding with deletion')
+
+    // Check if the event exists first
+    const existingEvent = await prisma.event.findUnique({
+      where: {
+        id: params.id,
+      },
+    })
+
+    if (!existingEvent) {
+      console.log('[EVENT_DELETE] Event not found:', params.id)
+      return new NextResponse('Event not found', { status: 404 })
+    }
+
+    console.log('[EVENT_DELETE] Event found, performing soft delete')
 
     const event = await prisma.event.update({
       where: {
@@ -85,9 +104,10 @@ export async function DELETE(
       },
     })
 
+    console.log('[EVENT_DELETE] Soft delete successful:', event.id)
     return NextResponse.json(event)
   } catch (error) {
-    console.error('[EVENT_DELETE]', error)
+    console.error('[EVENT_DELETE] Error:', error)
     return new NextResponse('Internal error', { status: 500 })
   }
 } 

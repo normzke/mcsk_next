@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const licenseTypes = await prisma.licenseType.findMany({
+    const licenseTypes = await prisma.licensetype.findMany({
       where: {
         deletedAt: null,
       },

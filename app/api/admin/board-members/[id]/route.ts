@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
@@ -12,10 +12,10 @@ export async function GET(
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    const boardMember = await prisma.managementMember.findFirst({
+    const boardMember = await prisma.boardmember.findFirst({
       where: {
         id: params.id,
-        role: 'board_member',
+        deletedAt: null,
       },
     })
 
@@ -42,7 +42,7 @@ export async function PATCH(
 
     const body = await req.json()
 
-    const boardMember = await prisma.managementMember.update({
+    const boardMember = await prisma.boardmember.update({
       where: {
         id: params.id,
       },
@@ -53,7 +53,11 @@ export async function PATCH(
         bio: body.bio,
         order: body.order,
         isActive: body.isActive,
-        role: 'board_member',
+        email: body.email,
+        linkedinUrl: body.linkedinUrl,
+        phone: body.phone,
+        twitterUrl: body.twitterUrl,
+        updatedAt: new Date(),
       },
     })
 
@@ -74,7 +78,19 @@ export async function DELETE(
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    const boardMember = await prisma.managementMember.update({
+    // First check if the board member exists
+    const existingBoardMember = await prisma.boardmember.findFirst({
+      where: {
+        id: params.id,
+        deletedAt: null,
+      },
+    })
+
+    if (!existingBoardMember) {
+      return new NextResponse('Board member not found', { status: 404 })
+    }
+
+    const boardMember = await prisma.boardmember.update({
       where: {
         id: params.id,
       },

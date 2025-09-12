@@ -69,26 +69,72 @@ export const columns: ColumnDef<Faq>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => (
-      <DataTableRowActions
-        row={row}
-        actions={[
-          {
-            label: 'Edit',
-            href: `/admin/faqs/${row.original.id}/edit`,
-          },
-          {
-            label: 'View',
-            href: `/admin/faqs/${row.original.id}`,
-          },
-          {
-            label: 'Delete',
-            onClick: () => {
-              // Handle delete
+    cell: ({ row }) => {
+      const faq = row.original
+      
+      const deleteFaq = async () => {
+        try {
+          // Add timeout to prevent hanging - increased to 20 seconds
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 second timeout
+          
+          console.log('Attempting to delete FAQ:', faq.id)
+          
+          const response = await fetch(`/api/admin/faqs/${faq.id}`, {
+            method: 'DELETE',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
             },
-          },
-        ]}
-      />
-    ),
+          })
+          
+          clearTimeout(timeoutId)
+          
+          console.log('Delete response status:', response.status)
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            console.error('Delete failed with status:', response.status, 'Error:', errorText)
+            throw new Error(`Failed to delete FAQ: ${response.status} ${errorText}`)
+          }
+          
+          const result = await response.json()
+          console.log('Delete successful:', result)
+          
+          // Invalidate cache after successful deletion
+          await Promise.all([
+            fetch('/api/revalidate?path=/admin/faqs'),
+            fetch('/api/revalidate?path=/faqs')
+          ])
+          
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Error deleting FAQ:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Delete request timed out. Please try again.')
+          }
+          return Promise.reject(error)
+        }
+      }
+      
+      return (
+        <DataTableRowActions
+          row={row}
+          actions={[
+            {
+              label: 'Edit',
+              href: `/admin/faqs/${faq.id}/edit`,
+            },
+            {
+              label: 'View',
+              href: `/admin/faqs/${faq.id}`,
+            },
+          ]}
+          onDelete={deleteFaq}
+          itemName={faq.question}
+          itemType="FAQ"
+        />
+      )
+    },
   },
 ] 

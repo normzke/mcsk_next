@@ -61,26 +61,59 @@ export const columns: ColumnDef<Download>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => (
-      <DataTableRowActions
-        row={row}
-        actions={[
-          {
-            label: 'Edit',
-            href: `/admin/downloads/${row.original.id}/edit`,
-          },
-          {
-            label: 'View',
-            href: `/admin/downloads/${row.original.id}`,
-          },
-          {
-            label: 'Delete',
-            onClick: () => {
-              // Handle delete
+    cell: ({ row }) => {
+      const download = row.original
+      
+      const deleteDownload = async () => {
+        try {
+          // Add timeout to prevent hanging
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+          
+          const response = await fetch(`/api/admin/downloads/${download.id}`, {
+            method: 'DELETE',
+            signal: controller.signal,
+          })
+          
+          clearTimeout(timeoutId)
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            throw new Error(`Failed to delete download: ${response.status} ${errorText}`)
+          }
+          
+          // Invalidate cache after successful deletion
+          await fetch('/api/revalidate?path=/admin/downloads')
+          await fetch('/api/revalidate?path=/downloads')
+          
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Error deleting download:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Delete request timed out. Please try again.')
+          }
+          return Promise.reject(error)
+        }
+      }
+      
+      return (
+        <DataTableRowActions
+          row={row}
+          actions={[
+            {
+              label: 'Edit',
+              href: `/admin/downloads/${download.id}/edit`,
             },
-          },
-        ]}
-      />
-    ),
+            {
+              label: 'View',
+              href: `/admin/downloads/${download.id}`,
+            },
+          ]}
+          onDelete={deleteDownload}
+          itemName={download.title}
+          itemType="Download"
+        />
+      )
+    },
   },
 ] 

@@ -43,6 +43,7 @@ export const columns: ColumnDef<Partner>[] = [
             alt={row.getValue('name')}
             fill
             className="rounded-md object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       )
@@ -96,26 +97,72 @@ export const columns: ColumnDef<Partner>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => (
-      <DataTableRowActions
-        row={row}
-        actions={[
-          {
-            label: 'Edit',
-            href: `/admin/partners/${row.original.id}/edit`,
-          },
-          {
-            label: 'View',
-            href: `/admin/partners/${row.original.id}`,
-          },
-          {
-            label: 'Delete',
-            onClick: () => {
-              // Handle delete
+    cell: ({ row }) => {
+      const partner = row.original
+      
+      const deletePartner = async () => {
+        try {
+          // Add timeout to prevent hanging - increased to 20 seconds
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 20000) // 20 second timeout
+          
+          console.log('Attempting to delete partner:', partner.id)
+          
+          const response = await fetch(`/api/admin/partners/${partner.id}`, {
+            method: 'DELETE',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
             },
-          },
-        ]}
-      />
-    ),
+          })
+          
+          clearTimeout(timeoutId)
+          
+          console.log('Delete response status:', response.status)
+          
+          if (!response.ok) {
+            const errorText = await response.text()
+            console.error('Delete failed with status:', response.status, 'Error:', errorText)
+            throw new Error(`Failed to delete partner: ${response.status} ${errorText}`)
+          }
+          
+          const result = await response.json()
+          console.log('Delete successful:', result)
+          
+          // Invalidate cache after successful deletion
+          await Promise.all([
+            fetch('/api/revalidate?path=/admin/partners'),
+            fetch('/api/revalidate?path=/partners')
+          ])
+          
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Error deleting partner:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            throw new Error('Delete request timed out. Please try again.')
+          }
+          return Promise.reject(error)
+        }
+      }
+      
+      return (
+        <DataTableRowActions
+          row={row}
+          actions={[
+            {
+              label: 'Edit',
+              href: `/admin/partners/${partner.id}/edit`,
+            },
+            {
+              label: 'View',
+              href: `/admin/partners/${partner.id}`,
+            },
+          ]}
+          onDelete={deletePartner}
+          itemName={partner.name}
+          itemType="Partner"
+        />
+      )
+    },
   },
 ] 

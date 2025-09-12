@@ -19,44 +19,15 @@ import { LeadershipData, LeadershipMember } from "@/types/leadership"
 export default function LeadershipContent({ initialData }: { initialData: LeadershipData }) {
   const [selectedMember, setSelectedMember] = useState<LeadershipMember | null>(null)
   
-  // Add fallback data for faster loading
-  const fallbackData = {
-    hero: {
-      title: "Board & Management",
-      description: "Meet the dedicated leaders guiding MCSK's mission to protect and promote music rights in Kenya.",
-      image: "/images/leadership-hero.jpg"
-    },
-    boardMembers: [
-      {
-        id: "chairman",
-        name: "Dr. Ezekiel Mutua",
-        position: "Chairman",
-        image: "/images/leadership/chairman.jpg",
-        bio: "Dr. Ezekiel Mutua is a seasoned administrator with extensive experience in media and communications. He has been instrumental in advocating for the rights of content creators and ensuring fair compensation for their work. As Chairman of MCSK, he leads the Board in setting strategic direction and ensuring good governance of the organization.",
-        expertise: ["Media & Communications", "Copyright Advocacy", "Strategic Leadership"],
-        contact: {
-          email: "chairman@mcsk.or.ke",
-          phone: "+254 XXX XXX XXX"
-        },
-        quote: "Our mission is to ensure that every musician in Kenya receives fair compensation for their creative work and intellectual property."
-      }
-    ],
-    managementTeam: [],
-    commitment: {
-      title: "Our Leadership Commitment",
-      description: "MCSK's leadership team is committed to transparency, innovation, and excellence in serving our members and protecting music rights in Kenya.",
-      values: []
-    }
-  };
-  
-  const { boardMembers, managementTeam, commitment } = initialData || fallbackData
+  // No fallback data - only show real data from database
+  const { boardMembers, managementTeam, commitment } = initialData || { boardMembers: [], managementTeam: [], commitment: { title: "", description: "", values: [] } }
 
   return (
     <main className="min-h-screen">
       <PageHeader
-        title={initialData?.hero?.title || fallbackData.hero.title}
-        description={initialData?.hero?.description || fallbackData.hero.description}
-        image={initialData?.hero?.image || fallbackData.hero.image}
+        title={initialData?.hero?.title || "Our Leadership"}
+        description={initialData?.hero?.description || "Meet the dedicated leaders guiding MCSK's mission to protect and promote music rights in Kenya."}
+        image={initialData?.hero?.image || "/images/team/leadership-hero.jpg"}
       />
 
       {/* MCSK Chairman */}
@@ -85,25 +56,25 @@ export default function LeadershipContent({ initialData }: { initialData: Leader
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Board of Directors</h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {boardMembers.map((member, index) => (
               <Card key={index} className="overflow-hidden">
-                <div className="relative h-64">
+                <div className="relative h-80 bg-gray-100 flex items-center justify-center">
                   <Image
                     src={member.image}
                     alt={member.name}
                     fill
-                    className="object-cover"
+                    className="object-contain p-2"
                   />
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-2">{member.name}</h3>
-                  <p className="text-blue-600 font-medium mb-4">{member.position}</p>
-                  <div className="space-y-4">
-                    <p className="text-slate-600 line-clamp-3">{member.bio}</p>
-                    <div className="flex flex-wrap gap-2">
+                <div className="p-4">
+                  <h3 className="text-lg font-bold mb-1">{member.name}</h3>
+                  <p className="text-blue-600 font-medium mb-3">{member.position}</p>
+                  <div className="space-y-3">
+                    <p className="text-slate-600 line-clamp-2 text-sm">{member.bio}</p>
+                    <div className="flex flex-wrap gap-1">
                       {member.expertise && member.expertise.map((skill: string, i: number) => (
-                        <Badge key={i} variant="secondary">
+                        <Badge key={i} variant="secondary" className="text-xs">
                           {skill}
                         </Badge>
                       ))}
@@ -167,25 +138,25 @@ export default function LeadershipContent({ initialData }: { initialData: Leader
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Management Team</h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {managementTeam && managementTeam.length > 0 ? managementTeam.map((member, index) => (
               <Card key={index} className="overflow-hidden">
-                <div className="relative h-64">
+                <div className="relative h-80 bg-gray-100 flex items-center justify-center">
                   <Image
                     src={member.image}
                     alt={member.name}
                     fill
-                    className="object-cover"
+                    className="object-contain p-2"
                   />
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-2">{member.name}</h3>
-                  <p className="text-blue-600 font-medium mb-4">{member.position}</p>
-                  <div className="space-y-4">
-                    <p className="text-slate-600 line-clamp-3">{member.bio}</p>
-                    <div className="flex flex-wrap gap-2">
+                <div className="p-4">
+                  <h3 className="text-lg font-bold mb-1">{member.name}</h3>
+                  <p className="text-blue-600 font-medium mb-3">{member.position}</p>
+                  <div className="space-y-3">
+                    <p className="text-slate-600 line-clamp-2 text-sm">{member.bio}</p>
+                    <div className="flex flex-wrap gap-1">
                       {member.expertise && member.expertise.map((skill: string, i: number) => (
-                        <Badge key={i} variant="secondary">
+                        <Badge key={i} variant="secondary" className="text-xs">
                           {skill}
                         </Badge>
                       ))}

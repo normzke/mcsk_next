@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "MCSK Downloads | Music Copyright Forms & Documents",
     description: "Download essential MCSK forms and documents for licensing and membership",
-    url: "https://mcsk.or.ke/downloads",
+    url: "https://mcsk.org/downloads",
     siteName: "Music Copyright Society of Kenya",
     locale: "en_US",
     type: "website",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     description: "Download essential MCSK forms and documents for licensing and membership",
   },
   alternates: {
-    canonical: "https://mcsk.or.ke/downloads",
+    canonical: "https://mcsk.org/downloads",
   },
 }
 
@@ -27,7 +27,7 @@ async function getDownloadsData() {
   try {
     // Use relative URL for API route within the same Next.js app
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/downloads`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 60 }, // Cache for 1 minute for faster updates
     })
     
     if (!res.ok) {
@@ -148,7 +148,7 @@ async function getDownloadsData() {
         {
           id: "1",
           question: "How do I submit completed forms?",
-          answer: "Completed forms can be submitted in person at our offices, via email to forms@mcsk.or.ke, or through our online portal."
+          answer: "Completed forms can be submitted in person at our offices, via email to forms@mcsk.org, or through our online portal."
         },
         {
           id: "2",

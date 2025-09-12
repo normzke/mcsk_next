@@ -1,180 +1,169 @@
-import { Metadata } from "next"
-import { notFound } from "next/navigation"
-import { format } from "date-fns"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import Link from "next/link"
-import { Edit, Trash2 } from "lucide-react"
-import type { BoardMember } from '@/types'
+import { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from 'next/image'
+import Link from 'next/link'
+import { ArrowLeft, Edit, Calendar, User, Mail, Phone, Linkedin, Twitter } from 'lucide-react'
+import { formatDate } from '@/lib/utils'
 
 export const metadata: Metadata = {
-  title: "View Board Member - MCSK Admin",
-  description: "View board member details",
+  title: 'View Board Member | MCSK Admin',
+  description: 'View MCSK board member details',
 }
 
-async function getBoardMember(id: string): Promise<BoardMember | null> {
-  // TODO: Implement API call
-  return null
+interface ViewBoardMemberPageProps {
+  params: {
+    id: string
+  }
 }
 
-export default async function ViewBoardMemberPage({
-  params,
-}: {
-  params: { id: string }
-}) {
-  const member = await getBoardMember(params.id)
+export default async function ViewBoardMemberPage({ params }: ViewBoardMemberPageProps) {
+  const boardMember = await prisma.boardmember.findUnique({
+    where: {
+      id: params.id,
+    },
+  })
 
-  if (!member) {
+  if (!boardMember) {
     notFound()
   }
 
   return (
-    <>
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">{member.name}</h2>
-          <p className="text-muted-foreground">
-            {member.position}
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Link href={`/admin/board-members/${member.id}/edit`}>
-            <Button variant="outline">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Member
-            </Button>
-          </Link>
-          <Button variant="destructive">
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete Member
+    <div className="flex-1 space-y-4 p-8 pt-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/admin/board-members">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Board Members
+            </Link>
           </Button>
+          <h2 className="text-3xl font-bold tracking-tight">View Board Member</h2>
         </div>
+        <Button asChild>
+          <Link href={`/admin/board-members/${boardMember.id}/edit`}>
+            <Edit className="mr-2 h-4 w-4" />
+            Edit
+          </Link>
+        </Button>
       </div>
 
-      <Separator className="my-6" />
-
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Personal Information */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Profile Image */}
         <Card>
           <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-4">
-              {member.image ? (
-                <div className="relative h-20 w-20 rounded-full overflow-hidden">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-                  <span className="text-2xl text-muted-foreground">
-                    {member.name.charAt(0)}
-                  </span>
-                </div>
-              )}
-              <div>
-                <h3 className="font-semibold">{member.name}</h3>
-                <p className="text-sm text-muted-foreground">{member.position}</p>
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <div>
-                <p className="text-sm font-medium">Phone</p>
-                <p className="text-sm text-muted-foreground">
-                  {member.phone || "Not provided"}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Board Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Board Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <div>
-                <p className="text-sm font-medium">Position</p>
-                <Badge variant="outline" className="mt-1">
-                  {member.position}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Display Order</p>
-                <Badge variant="secondary" className="mt-1">
-                  {member.order}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Status</p>
-                <Badge variant={member.isActive ? "default" : "secondary"} className="mt-1">
-                  {member.isActive ? "Active" : "Inactive"}
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Biography */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Biography</CardTitle>
+            <CardTitle>Profile Photo</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {member.bio}
-            </p>
+            {boardMember.image ? (
+              <div className="relative aspect-square rounded-lg overflow-hidden">
+                <Image
+                  src={boardMember.image}
+                  alt={boardMember.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </div>
+            ) : (
+              <div className="aspect-square rounded-lg bg-muted flex items-center justify-center">
+                <User className="h-24 w-24 text-muted-foreground" />
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Social Links */}
-        {(member.linkedinUrl || member.twitterUrl) && (
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>Social Media Links</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
-                {member.linkedinUrl && (
-                  <div>
-                    <p className="text-sm font-medium">LinkedIn</p>
-                    <a
-                      href={member.linkedinUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      {member.linkedinUrl}
-                    </a>
-                  </div>
-                )}
-                {member.twitterUrl && (
-                  <div>
-                    <p className="text-sm font-medium">Twitter</p>
-                    <a
-                      href={member.twitterUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      {member.twitterUrl}
-                    </a>
-                  </div>
-                )}
+        {/* Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Member Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">{boardMember.name}</h3>
+              <p className="text-lg text-muted-foreground mb-4">{boardMember.position}</p>
+              {boardMember.bio && (
+                <p className="text-muted-foreground">{boardMember.bio}</p>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Status</span>
+                <Badge variant={boardMember.isActive ? 'default' : 'secondary'}>
+                  {boardMember.isActive ? 'Active' : 'Inactive'}
+                </Badge>
               </div>
-            </CardContent>
-          </Card>
-        )}
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Order</span>
+                <span className="text-sm text-muted-foreground">{boardMember.order}</span>
+              </div>
+
+              {boardMember.email && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Email</span>
+                  <div className="flex items-center space-x-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{boardMember.email}</span>
+                  </div>
+                </div>
+              )}
+
+              {boardMember.phone && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Phone</span>
+                  <div className="flex items-center space-x-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{boardMember.phone}</span>
+                  </div>
+                </div>
+              )}
+
+              {boardMember.linkedinUrl && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">LinkedIn</span>
+                  <Button size="sm" variant="outline" asChild>
+                    <a href={boardMember.linkedinUrl} target="_blank" rel="noopener noreferrer">
+                      <Linkedin className="mr-2 h-4 w-4" />
+                      View Profile
+                    </a>
+                  </Button>
+                </div>
+              )}
+
+              {boardMember.twitterUrl && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Twitter</span>
+                  <Button size="sm" variant="outline" asChild>
+                    <a href={boardMember.twitterUrl} target="_blank" rel="noopener noreferrer">
+                      <Twitter className="mr-2 h-4 w-4" />
+                      View Profile
+                    </a>
+                  </Button>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Created</span>
+                <span className="text-sm text-muted-foreground">
+                  {formatDate(boardMember.createdAt)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Last Updated</span>
+                <span className="text-sm text-muted-foreground">
+                  {formatDate(boardMember.updatedAt)}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </>
+    </div>
   )
 } 

@@ -2,6 +2,36 @@
 
 import { useState } from "react"
 import PageHeader from "@/components/ui/page-header"
+
+      {/* Online Portal CTA Section */}
+      <section className="py-12 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4">Apply for Your License Online</h2>
+            <p className="text-xl mb-6 text-blue-100">
+              All license applications are processed through our secure online portal at 
+              <strong className="text-white"> online.mcsk.org</strong>
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg"
+                className="bg-white text-blue-600 hover:bg-blue-50"
+                onClick={() => window.open("https://online.mcsk.org/", "_blank")}
+              >
+                Go to Online Portal
+              </Button>
+              <Button 
+                size="lg"
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-blue-600"
+                onClick={() => window.open("https://online.mcsk.org/", "_blank")}
+              >
+                Learn More
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -143,6 +173,36 @@ export default function LicensingContent({ initialData }: { initialData: Licensi
         image={initialData?.hero?.image || "/images/licensing/hero.jpg"}
       />
 
+      {/* Online Portal CTA Section */}
+      <section className="py-12 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4">Apply for Your License Online</h2>
+            <p className="text-xl mb-6 text-blue-100">
+              All license applications are processed through our secure online portal at 
+              <strong className="text-white"> online.mcsk.org</strong>
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg"
+                className="bg-white text-blue-600 hover:bg-blue-50"
+                onClick={() => window.open('https://online.mcsk.org/', '_blank')}
+              >
+                Go to Online Portal
+              </Button>
+              <Button 
+                size="lg"
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-blue-600"
+                onClick={() => window.open('https://online.mcsk.org/', '_blank')}
+              >
+                Learn More
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Benefits Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
@@ -194,7 +254,7 @@ export default function LicensingContent({ initialData }: { initialData: Licensi
                             <DollarSign className="h-4 w-4 mr-1" />
                             <span>KES {license.price.toLocaleString()} / {license.duration}</span>
                           </div>
-                          <div className="space-y-4">
+                          <div className="mt-6 space-y-4">
                             <div>
                               <h4 className="font-semibold mb-2">Benefits:</h4>
                               <ul className="list-disc list-inside text-slate-600 space-y-1">
@@ -218,40 +278,58 @@ export default function LicensingContent({ initialData }: { initialData: Licensi
                             </DialogTrigger>
                             <DialogContent>
                               <DialogHeader>
-                                <DialogTitle>{license.title} Application</DialogTitle>
+                                <DialogTitle>Apply for {license.title}</DialogTitle>
                                 <DialogDescription>
-                                  Follow these steps to apply for your license
+                                  License applications are processed through our secure online portal.
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4">
-                                <div className="space-y-2">
-                                  {license.applicationProcess.map((step, i) => (
-                                    <div key={i} className="flex items-start gap-2">
-                                      <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        {i + 1}
-                                      </div>
-                                      <p className="text-slate-600">{step}</p>
-                                    </div>
-                                  ))}
-                                </div>
-                                <div className="border-t pt-4">
-                                  <h4 className="font-semibold mb-2">Required Documents:</h4>
+                                <div className="bg-blue-50 p-4 rounded-lg">
+                                  <h4 className="font-semibold mb-2 text-blue-900">Online Application Portal</h4>
+                                  <p className="text-blue-800 mb-4">
+                                    All license applications are processed through our secure online portal at 
+                                    <strong> online.mcsk.org</strong>
+                                  </p>
                                   <div className="space-y-2">
-                                    {license.documents.map((doc, i) => (
-                                      <Button
-                                        key={i}
-                                        variant="outline"
-                                        className="w-full justify-between"
-                                        onClick={() => window.open(doc.url, '_blank')}
-                                      >
-                                        <span className="flex items-center">
-                                          <FileText className="h-4 w-4 mr-2" />
-                                          {doc.name}
-                                        </span>
-                                        <Download className="h-4 w-4" />
-                                      </Button>
-                                    ))}
+                                    <div className="flex items-start gap-2">
+                                      <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        1
+                                      </div>
+                                      <p className="text-blue-800">Visit our online portal</p>
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                      <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        2
+                                      </div>
+                                      <p className="text-blue-800">Create an account or log in</p>
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                      <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        3
+                                      </div>
+                                      <p className="text-blue-800">Complete your license application</p>
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                      <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        4
+                                      </div>
+                                      <p className="text-blue-800">Submit payment and receive your license</p>
+                                    </div>
                                   </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button 
+                                    onClick={() => window.open('https://online.mcsk.org/', '_blank')}
+                                    className="flex-1"
+                                  >
+                                    Go to Online Portal
+                                  </Button>
+                                  <Button 
+                                    variant="outline"
+                                    onClick={() => window.open('https://online.mcsk.org/', '_blank')}
+                                  >
+                                    Learn More
+                                  </Button>
                                 </div>
                               </div>
                             </DialogContent>

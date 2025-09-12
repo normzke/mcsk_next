@@ -1,6 +1,8 @@
 import { Metadata } from "next"
 import McskWaveContent from "./components/mcskwave-content"
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "MCSK Wave | Music Copyright Society of Kenya",
   description: "Join Kenya's premier music streaming platform. Share your music, connect with fans, and manage your rights with MCSK Wave.",
@@ -8,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "MCSK Wave | Music Copyright Society of Kenya",
     description: "Join Kenya's premier music streaming platform. Share your music, connect with fans, and manage your rights with MCSK Wave.",
-    url: "https://mcsk.or.ke/mcskwave",
+    url: "https://mcsk.org/mcskwave",
     siteName: "Music Copyright Society of Kenya",
     locale: "en_US",
     type: "website",
@@ -19,7 +21,7 @@ export const metadata: Metadata = {
     description: "Join Kenya's premier music streaming platform. Share your music, connect with fans, and manage your rights with MCSK Wave.",
   },
   alternates: {
-    canonical: "https://mcsk.or.ke/mcskwave",
+    canonical: "https://mcsk.org/mcskwave",
   },
 }
 
@@ -27,7 +29,7 @@ async function getMcskWaveData() {
   try {
     // Use relative URL for API route within the same Next.js app
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/mcskwave`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 60 }, // Cache for 1 minute for faster updates
     })
     
     if (!res.ok) {

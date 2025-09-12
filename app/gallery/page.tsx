@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Gallery | Music Copyright Society of Kenya",
     description: "Browse photos and videos from MCSK events, performances, workshops, and member activities.",
-    url: "https://mcsk.or.ke/gallery",
+    url: "https://mcsk.org/gallery",
     siteName: "Music Copyright Society of Kenya",
     locale: "en_US",
     type: "website",
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     description: "Browse photos and videos from MCSK events, performances, workshops, and member activities.",
   },
   alternates: {
-    canonical: "https://mcsk.or.ke/gallery",
+    canonical: "https://mcsk.org/gallery",
   },
 }
 
@@ -28,7 +28,7 @@ async function getGalleryData() {
   try {
     // Use relative URL for API route within the same Next.js app
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/gallery`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 60 }, // Cache for 1 minute
     })
     
     if (!res.ok) {

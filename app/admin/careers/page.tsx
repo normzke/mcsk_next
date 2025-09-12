@@ -8,6 +8,8 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { Job } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "Careers | MCSK Admin",
   description: "Manage MCSK careers",
@@ -83,6 +85,7 @@ export default async function CareersPage() {
     responsibilities: Array.isArray(job.responsibilities) ? job.responsibilities.filter((v: any) => typeof v === 'string') : [],
     requirements: Array.isArray(job.requirements) ? job.requirements.filter((v: any) => typeof v === 'string') : [],
     benefits: Array.isArray(job.benefits) ? job.benefits.filter((v: any) => typeof v === 'string') : [],
+    isActive: typeof job.isActive === 'boolean' ? job.isActive : true,
     deadline: job.deadline ? new Date(job.deadline).toISOString() : '',
     createdAt: job.createdAt ? new Date(job.createdAt).toISOString() : '',
     updatedAt: job.updatedAt ? new Date(job.updatedAt).toISOString() : '',

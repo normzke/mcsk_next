@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
+import { randomUUID } from 'crypto'
 
 export async function GET(req: Request) {
   try {
@@ -60,12 +61,14 @@ export async function POST(req: Request) {
 
     const service = await prisma.service.create({
       data: {
+        id: randomUUID(),
         title: body.title,
         description: body.description,
-        icon: body.icon || null,
+        icon: body.icon,
         order: body.order || 0,
-        isActive: body.isActive ?? true
-      } as any, // Use type assertion to bypass TypeScript errors
+        isActive: body.isActive ?? true,
+        updatedAt: new Date(),
+      },
     })
 
     return NextResponse.json(service)

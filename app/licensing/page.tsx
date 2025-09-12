@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Licensing | Music Copyright Society of Kenya",
     description: "Learn about MCSK's music licensing services, fees, and application process for businesses and events.",
-    url: "https://mcsk.or.ke/licensing",
+    url: "https://mcsk.org/licensing",
     siteName: "Music Copyright Society of Kenya",
     locale: "en_US",
     type: "website",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     description: "Learn about MCSK's music licensing services, fees, and application process for businesses and events.",
   },
   alternates: {
-    canonical: "https://mcsk.or.ke/licensing",
+    canonical: "https://mcsk.org/licensing",
   },
 }
 
@@ -111,13 +111,13 @@ async function getLicensingData() {
       }
     ],
     process: {
-      title: "Licensing Process",
-      description: "Our streamlined process for obtaining a music license",
+      title: "Online Licensing Process",
+      description: "Our streamlined online process for obtaining a music license through our secure portal",
       steps: [
-        { title: "Application", description: "Submit your application form" },
-        { title: "Review", description: "We review your application" },
-        { title: "Payment", description: "Pay the applicable license fee" },
-        { title: "Issuance", description: "Receive your license certificate" }
+        { title: "Visit Portal", description: "Go to online.mcsk.org" },
+        { title: "Create Account", description: "Register or log in to your account" },
+        { title: "Apply Online", description: "Complete your license application" },
+        { title: "Payment & License", description: "Pay online and receive your license" }
       ]
     }
   }
@@ -125,7 +125,7 @@ async function getLicensingData() {
   // Use the safeFetch utility with timeout and fallback
   return await safeFetch(
     `${getBaseUrl()}/api/licensing`,
-    { next: { revalidate: 3600 } }, // Cache for 1 hour
+          { next: { revalidate: 60 } }, // Cache for 1 minute for faster updates
     fallbackData
   )
 }
@@ -148,8 +148,8 @@ export default async function LicensingPage() {
       licenses: [],
       faqs: [],
       process: {
-        title: "Licensing Process",
-        description: "Our streamlined process for obtaining a music license",
+        title: "Online Licensing Process",
+        description: "Our streamlined online process for obtaining a music license through our secure portal",
         steps: [
           { title: "Application", description: "Submit your application form" },
           { title: "Review", description: "We review your application" }

@@ -1,52 +1,27 @@
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    // Mock data for partners
-    const partners = [
-      {
-        id: '1',
-        name: 'CISAC',
-        logo: '/images/partners/cisac.png',
-        url: 'https://www.cisac.org',
-        description: 'International Confederation of Societies of Authors and Composers'
+    // Fetch partners from database
+    const dbPartners = await prisma.partner.findMany({
+      where: {
+        deletedAt: null,
+        isActive: true,
       },
-      {
-        id: '2',
-        name: 'KECOBO',
-        logo: '/images/partners/kecobo.png',
-        url: 'https://www.copyright.go.ke',
-        description: 'Kenya Copyright Board'
+      orderBy: {
+        order: 'asc',
       },
-      {
-        id: '3',
-        name: 'WIPO',
-        logo: '/images/partners/wipo.svg',
-        url: 'https://www.wipo.int',
-        description: 'World Intellectual Property Organization'
-      },
-      {
-        id: '4',
-        name: 'ARIPO',
-        logo: '/images/partners/aripo.svg',
-        url: 'https://www.aripo.org',
-        description: 'African Regional Intellectual Property Organization'
-      },
-      {
-        id: '5',
-        name: 'Ministry of Culture',
-        logo: '/images/partners/ministry.svg',
-        url: 'https://www.culture.go.ke',
-        description: 'Ministry of Sports, Culture and Heritage'
-      },
-      {
-        id: '6',
-        name: 'KAMP',
-        logo: '/images/partners/kamp.svg',
-        url: 'https://www.kamp.or.ke',
-        description: 'Kenya Association of Music Producers'
-      }
-    ];
+    });
+
+    // Transform the data to match the expected format
+    const partners = dbPartners.map((partner) => ({
+      id: partner.id,
+      name: partner.name,
+      logo: partner.logo || '/images/partners/default.png',
+      url: partner.website || '#',
+      description: `${partner.name} - Partner of MCSK`
+    }));
 
     return NextResponse.json({ partners });
   } catch (error) {

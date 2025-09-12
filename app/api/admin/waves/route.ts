@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/custom-auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(req: Request) {
@@ -71,6 +71,7 @@ export async function POST(req: Request) {
 
     const wave = await prisma.wave.create({
       data: {
+        id: crypto.randomUUID(),
         title: body.title,
         artist: body.artist,
         album: body.album,
@@ -81,12 +82,13 @@ export async function POST(req: Request) {
         audioFile: body.audioFile,
         status: body.status ?? true,
         isFeatured: body.isFeatured ?? false,
-        playCount: 0,
+        playCount: body.playCount ?? 0,
         memberId: body.memberId,
         isrcCode: body.isrcCode,
         lyrics: body.lyrics,
         description: body.description,
         copyrightInfo: body.copyrightInfo,
+        updatedAt: new Date(),
       },
     })
 

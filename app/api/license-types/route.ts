@@ -56,7 +56,7 @@ export async function GET(request: Request) {
           ],
           contactPerson: {
             name: "Jane Muthoni",
-            email: "business.licensing@mcsk.or.ke",
+            email: "business.licensing@mcsk.org",
             phone: "+254 20 XXX XXX"
           }
         },
@@ -105,7 +105,7 @@ export async function GET(request: Request) {
           ],
           contactPerson: {
             name: "John Kamau",
-            email: "event.licensing@mcsk.or.ke",
+            email: "event.licensing@mcsk.org",
             phone: "+254 20 XXX XXX"
           }
         },
@@ -154,7 +154,7 @@ export async function GET(request: Request) {
           ],
           contactPerson: {
             name: "David Ochieng",
-            email: "digital.licensing@mcsk.or.ke",
+            email: "digital.licensing@mcsk.org",
             phone: "+254 20 XXX XXX"
           }
         },
@@ -203,7 +203,7 @@ export async function GET(request: Request) {
           ],
           contactPerson: {
             name: "Sarah Wanjiku",
-            email: "broadcasting.licensing@mcsk.or.ke",
+            email: "broadcasting.licensing@mcsk.org",
             phone: "+254 20 XXX XXX"
           }
         }

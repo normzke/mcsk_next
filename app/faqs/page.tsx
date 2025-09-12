@@ -1,6 +1,8 @@
 import { Metadata } from "next"
 import FaqsContent from "./components/faqs-content"
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "MCSK FAQs | Music Copyright & Royalties in Kenya",
   description: "Frequently asked questions about MCSK membership, royalties collection, and licensing",
@@ -8,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "MCSK FAQs | Music Copyright & Royalties in Kenya",
     description: "Frequently asked questions about MCSK membership, royalties collection, and licensing",
-    url: "https://mcsk.or.ke/faqs",
+    url: "https://mcsk.org/faqs",
     siteName: "Music Copyright Society of Kenya",
     locale: "en_US",
     type: "website",
@@ -19,7 +21,7 @@ export const metadata: Metadata = {
     description: "Frequently asked questions about MCSK membership, royalties collection, and licensing",
   },
   alternates: {
-    canonical: "https://mcsk.or.ke/faqs",
+    canonical: "https://mcsk.org/faqs",
   },
 }
 
@@ -27,7 +29,7 @@ async function getFaqsData() {
   try {
     // Use relative URL for API route within the same Next.js app
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/faqs`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      next: { revalidate: 60 }, // Cache for 1 minute for faster updates
     })
     
     if (!res.ok) {
@@ -100,7 +102,7 @@ async function getFaqsData() {
             {
               id: "8",
               question: "How do I apply for a music license?",
-              answer: "You can apply for a license through our website, by visiting our offices, or by contacting our licensing department. The process involves completing an application form and paying the applicable fee."
+              answer: "You can apply for a license through our secure online portal at online.mcsk.org, by visiting our offices, or by contacting our licensing department. The online portal provides the fastest and most convenient way to complete your application."
             },
             {
               id: "9",
@@ -113,7 +115,7 @@ async function getFaqsData() {
       contact: {
         title: "Still Have Questions?",
         description: "If you couldn't find the answer to your question, please contact our support team.",
-        email: "info@mcsk.or.ke",
+        email: "info@mcsk.org",
         phone: "+254 20 2535988/9",
         hours: "Monday to Friday, 8:00 AM to 5:00 PM"
       },
@@ -121,7 +123,7 @@ async function getFaqsData() {
         title: "Need More Help?",
         description: "Our support team is ready to assist you with any further questions.",
         contact: {
-          email: "support@mcsk.or.ke",
+          email: "support@mcsk.org",
           phone: "+254 20 2535988",
           hours: "Mon-Fri, 9 AM - 5 PM EAT"
         },

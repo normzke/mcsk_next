@@ -45,7 +45,7 @@ export async function GET() {
           ],
           contactPerson: {
             name: "Jane Muthoni",
-            email: "business.licensing@mcsk.or.ke",
+            email: "business.licensing@mcsk.org",
             phone: "+254 20 XXX XXX"
           }
         },
@@ -80,7 +80,7 @@ export async function GET() {
           ],
           contactPerson: {
             name: "John Kamau",
-            email: "event.licensing@mcsk.or.ke",
+            email: "event.licensing@mcsk.org",
             phone: "+254 20 XXX XXX"
           }
         },
@@ -115,7 +115,7 @@ export async function GET() {
           ],
           contactPerson: {
             name: "David Ochieng",
-            email: "digital.licensing@mcsk.or.ke",
+            email: "digital.licensing@mcsk.org",
             phone: "+254 20 XXX XXX"
           }
         }

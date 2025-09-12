@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Mail, Phone, Trash2, Eye, EyeOff } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 
 interface ContactViewProps {
   contact: Contact
@@ -31,17 +31,10 @@ export function ContactView({ contact }: ContactViewProps) {
         }),
       })
       router.refresh()
-      toast({
-        title: 'Success',
-        description: `Message marked as ${contact.isRead ? 'unread' : 'read'}.`,
-      })
+      toast.success(`Message marked as ${contact.isRead ? 'unread' : 'read'}.`)
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      toast.error('Something went wrong. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -55,17 +48,10 @@ export function ContactView({ contact }: ContactViewProps) {
       })
       router.refresh()
       router.push('/admin/contacts')
-      toast({
-        title: 'Success',
-        description: 'Message deleted successfully.',
-      })
+      toast.success('Message deleted successfully.')
     } catch (error) {
       console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      toast.error('Something went wrong. Please try again.')
     } finally {
       setIsLoading(false)
     }
