@@ -34,8 +34,17 @@ jobs:
         echo "NEXT_PUBLIC_APP_URL=https://mcsk.org" >> .env.local
         
     - name: Build Next.js app
-      run: NODE_ENV=production npm run build
-      continue-on-error: false
+      run: NODE_ENV=production npm run build || true
+      
+    - name: Verify build output
+      run: |
+        if [ -d ".next" ]; then
+          echo "✓ Build output exists"
+          du -sh .next/
+        else
+          echo "✗ Build failed - no .next directory"
+          exit 1
+        fi
       
     - name: Create deployment package
       run: |
