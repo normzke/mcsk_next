@@ -1,0 +1,96 @@
+name: Build and Release for cPanel
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Create env file
+      run: |
+        echo "DATABASE_URL=mysql://placeholder:placeholder@localhost:3306/mcsk" >> .env.local
+        echo "NEXTAUTH_SECRET=build-time-placeholder-secret" >> .env.local
+        echo "NEXT_PUBLIC_API_URL=https://mcsk.org/api" >> .env.local
+        echo "NEXT_PUBLIC_APP_URL=https://mcsk.org" >> .env.local
+        
+    - name: Build Next.js app
+      run: NODE_ENV=production npm run build
+      continue-on-error: false
+      
+    - name: Create deployment package
+      run: |
+        mkdir -p deploy
+        cp -r .next deploy/
+        cp -r public deploy/ 2>/dev/null || echo "No public folder"
+        cp -r prisma deploy/
+        cp package.json deploy/
+        cp server.js deploy/
+        cp next.config.js deploy/
+        echo "# Environment Variables" > deploy/.env.example
+        echo "DATABASE_URL=mysql://username:password@localhost:3306/database" >> deploy/.env.example
+        echo "NEXTAUTH_SECRET=your-secure-secret-key-min-32-chars" >> deploy/.env.example
+        echo "NEXT_PUBLIC_API_URL=https://your-domain.com/api" >> deploy/.env.example
+        echo "NEXT_PUBLIC_APP_URL=https://your-domain.com" >> deploy/.env.example
+        echo "NEXT_PUBLIC_ENABLE_ANALYTICS=true" >> deploy/.env.example
+        
+    - name: Create tar.gz archive
+      run: |
+        tar -czf mcsk-cpanel-deploy-${{ github.run_number }}.tar.gz deploy/
+        ls -lh mcsk-cpanel-deploy-*.tar.gz
+        
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mcsk-cpanel-deploy
+        path: mcsk-cpanel-deploy-${{ github.run_number }}.tar.gz
+        retention-days: 30
+        
+    - name: Create Release
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ github.run_number }}
+        name: Release v${{ github.run_number }}
+        body: |
+          ## MCSK Next.js cPanel Deployment Package
+          
+          ### Changes in this release
+          ${{ github.event.head_commit.message }}
+          
+          ### Deployment Instructions
+          1. Download `mcsk-cpanel-deploy-${{ github.run_number }}.tar.gz`
+          2. Upload to your cPanel hosting
+          3. Extract: `tar -xzf mcsk-cpanel-deploy-${{ github.run_number }}.tar.gz`
+          4. Create `.env` file from `.env.example`
+          5. Run `npm install`
+          6. Setup Prisma: `npx prisma generate && npx prisma migrate deploy`
+          7. Restart Node.js app
+          
+          ### Includes
+          - Pre-built Next.js application (`.next/`)
+          - Static assets (`public/`)
+          - Database schema (`prisma/`)
+          - Server configuration (`server.js`, `next.config.js`)
+          - Dependencies list (`package.json`)
+        files: |
+          mcsk-cpanel-deploy-${{ github.run_number }}.tar.gz
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
