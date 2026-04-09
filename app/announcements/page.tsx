@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Announcements | MCSK',
   description: 'All official announcements from the Music Copyright Society of Kenya.'

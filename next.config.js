@@ -71,6 +71,7 @@ const nextConfig = {
     return config;
   },
   images: {
+    unoptimized: true, // Disable image optimization for cPanel deployment
     remotePatterns: [
       {
         protocol: 'http',

@@ -9,6 +9,8 @@ import HeroCarousel from '@/components/ui/hero-carousel';
 import PartnerCard from '@/components/ui/partner-card';
 import SocialFeed from '@/components/ui/social-feed';
 
+export const dynamic = 'force-dynamic'
+
 interface NewsItem {
   id: string
   title: string

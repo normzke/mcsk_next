@@ -1,6 +1,8 @@
 import { Metadata } from "next"
 import EventsContent from "./components/events-content"
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "Events | Music Copyright Society of Kenya",
   description: "Stay updated with MCSK's upcoming events, workshops, meetings, and music industry gatherings.",

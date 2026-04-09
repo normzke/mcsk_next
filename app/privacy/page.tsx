@@ -1,6 +1,8 @@
 import { Metadata } from "next"
 import PrivacyContent from "./components/privacy-content"
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "Privacy Policy | Music Copyright Society of Kenya",
   description: "Learn about how MCSK collects, uses, and protects your personal information. Understand our data protection practices.",

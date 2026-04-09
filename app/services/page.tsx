@@ -1,6 +1,8 @@
 import { Metadata } from "next"
 import ServicesContent from "./components/services-content"
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "Services | Music Copyright Society of Kenya",
   description: "Explore MCSK's comprehensive services for music creators, including licensing, royalty collection, and rights management.",
